@@ -1,0 +1,34 @@
+"use client";
+
+import { useState } from "react";
+import { Activity, ArrowUpRight, Boxes, GitPullRequest, ShieldCheck, Sparkles } from "lucide-react";
+
+const dimensions = [
+  ["Architecture", 92],
+  ["Maintainability", 86],
+  ["Testing", 78],
+  ["Security", 88],
+  ["Performance", 94],
+  ["Documentation", 81],
+];
+
+export default function Home() {
+  const [repo, setRepo] = useState("./");
+  const [running, setRunning] = useState(false);
+  const run = async () => {
+    setRunning(true);
+    await new Promise((resolve) => setTimeout(resolve, 700));
+    setRunning(false);
+  };
+
+  return (
+    <main className="shell">
+      <header className="topbar"><div className="brand"><div className="mark">A</div><div><strong>AURA</strong><span>ENGINEERING INTELLIGENCE</span></div></div><div className="status"><Activity size={15}/> SYSTEM ONLINE</div></header>
+      <section className="hero"><div><p className="eyebrow"><Sparkles size={15}/> LIVING SOFTWARE MODEL</p><h1>Know your codebase.<br/><em>Before it breaks.</em></h1><p className="lede">AURA builds an evidence-backed model of architecture, dependencies, quality, and engineering risk.</p><div className="controls"><input value={repo} onChange={(e) => setRepo(e.target.value)} aria-label="Repository path"/><button onClick={run}>{running ? "Analyzing…" : "Analyze repository"}<ArrowUpRight size={17}/></button></div></div><div className="score-card"><span>ENGINEERING HEALTH</span><div className="score">89<span>/100</span></div><div className="delta">▲ 6.4% vs. previous analysis</div></div></section>
+      <section className="grid"><article className="panel wide"><div className="panel-head"><div><span className="kicker">01 / HEALTH MODEL</span><h2>Engineering health</h2></div><span className="chip">6 dimensions</span></div><div className="bars">{dimensions.map(([name, value]) => <div className="bar-row" key={name as string}><div><span>{name}</span><b>{value}</b></div><div className="track"><i style={{width: `${value}%`}}/></div></div>)}</div></article><article className="panel"><div className="panel-head"><div><span className="kicker">02 / GRAPH</span><h2>Repository shape</h2></div><Boxes size={18}/></div><div className="graph"><div className="node core">API</div><div className="node n1">RAG</div><div className="node n2">DB</div><div className="node n3">Agents</div><div className="node n4">Web</div><svg viewBox="0 0 400 230"><line x1="200" y1="110" x2="95" y2="55"/><line x1="200" y1="110" x2="305" y2="55"/><line x1="200" y1="110" x2="85" y2="175"/><line x1="200" y1="110" x2="315" y2="175"/></svg></div></article></section>
+      <section className="grid"><article className="panel"><div className="panel-head"><div><span className="kicker">03 / CHANGES</span><h2>PR risk</h2></div><GitPullRequest size={18}/></div><div className="metric">Low <small>risk</small></div><p className="muted">No high-risk architectural changes detected in the latest analyzed change set.</p></article><article className="panel"><div className="panel-head"><div><span className="kicker">04 / SECURITY</span><h2>Findings</h2></div><ShieldCheck size={18}/></div><div className="metric">0 <small>critical</small></div><p className="muted">Static repository signals show no critical findings in the current scan.</p></article></section>
+      <footer>AURA / autonomous engineering intelligence <span>Evidence first · Provider agnostic · Incremental</span></footer>
+      <style jsx global>{`*{box-sizing:border-box}body{margin:0;background:#0a0b0d;color:#e9eaec;font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif}.shell{max-width:1220px;margin:auto;padding:28px 32px}.topbar{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #24272c;padding-bottom:20px}.brand{display:flex;gap:12px;align-items:center}.mark{width:32px;height:32px;border:1px solid #70757d;border-radius:8px;display:grid;place-items:center;font-weight:800}.brand strong{display:block;font-size:15px;letter-spacing:.14em}.brand span,.status,.kicker,.eyebrow{font-size:10px;letter-spacing:.16em;color:#8d929a}.status{display:flex;gap:7px;align-items:center}.hero{display:grid;grid-template-columns:1fr 320px;gap:80px;padding:85px 0 60px;align-items:end}.eyebrow{display:flex;align-items:center;gap:7px}.hero h1{font-size:clamp(46px,6vw,78px);line-height:.98;letter-spacing:-.055em;margin:18px 0}.hero h1 em{font-style:normal;color:#9da3ab}.lede{max-width:650px;color:#9a9fa7;font-size:17px;line-height:1.6}.controls{display:flex;gap:8px;margin-top:28px}.controls input{background:#111318;border:1px solid #30343a;color:#ddd;padding:13px 15px;border-radius:8px;flex:1}.controls button{border:0;background:#e8e9eb;color:#0a0b0d;border-radius:8px;padding:0 17px;font-weight:700;display:flex;gap:8px;align-items:center}.score-card{border:1px solid #30343a;border-radius:12px;padding:24px;background:linear-gradient(145deg,#121419,#0d0e11)}.score-card>span{font-size:10px;color:#8d929a;letter-spacing:.15em}.score{font-size:68px;letter-spacing:-.06em;margin:25px 0 5px}.score span{font-size:18px;color:#777d85}.delta{font-size:12px;color:#aeb3ba}.grid{display:grid;grid-template-columns:1.45fr 1fr;gap:16px;margin-bottom:16px}.panel{border:1px solid #24272c;border-radius:12px;padding:24px;background:#0e1013}.wide{min-height:360px}.panel-head{display:flex;justify-content:space-between;align-items:start}.kicker{display:block;margin-bottom:7px}.panel h2{font-size:20px;margin:0;letter-spacing:-.02em}.chip{font-size:11px;border:1px solid #30343a;border-radius:99px;padding:6px 9px;color:#9a9fa7}.bars{margin-top:28px}.bar-row{margin:19px 0}.bar-row>div:first-child{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}.bar-row b{font-weight:500;color:#a9aeb6}.track{height:4px;background:#24272c;border-radius:99px;overflow:hidden}.track i{display:block;height:100%;background:#cdd0d4}.graph{height:230px;position:relative;margin-top:14px}.graph svg{position:absolute;inset:0;width:100%;height:100%;stroke:#393d44;stroke-width:1}.node{position:absolute;z-index:1;padding:10px 13px;border:1px solid #454a52;border-radius:8px;background:#15181c;font-size:11px}.core{left:calc(50% - 23px);top:85px}.n1{left:12%;top:25px}.n2{right:12%;top:25px}.n3{left:10%;bottom:25px}.n4{right:10%;bottom:25px}.metric{font-size:44px;letter-spacing:-.04em;margin:35px 0 10px}.metric small{font-size:13px;color:#8d929a}.muted{color:#81868e;font-size:13px;line-height:1.6}footer{padding:30px 0 10px;color:#646970;font-size:10px;letter-spacing:.12em;text-transform:uppercase;display:flex;justify-content:space-between}@media(max-width:800px){.shell{padding:20px}.hero,.grid{grid-template-columns:1fr}.hero{gap:30px;padding-top:55px}.score-card{max-width:none}footer{display:block}footer span{display:block;margin-top:8px}}`}</style>
+    </main>
+  );
+}
