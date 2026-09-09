@@ -13,12 +13,12 @@ class Finding(BaseModel):
     severity: str
     title: str
     detail: str
-    evidence: list[str] = []
+    evidence: list[str] = Field(default_factory=list)
 
 
 class Dimension(BaseModel):
     score: float
-    findings: list[Finding] = []
+    findings: list[Finding] = Field(default_factory=list)
 
 
 class Analysis(BaseModel):
