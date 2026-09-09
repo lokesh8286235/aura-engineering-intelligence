@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import AnalyzeRequest, AskRequest, Dimension, Finding
+from app.models import Analysis, AnalyzeRequest, AskRequest, Dimension, Finding
 
 
 def test_finding_evidence_lists_are_not_shared():
@@ -45,3 +45,47 @@ def test_ask_request_enforces_question_length():
 
     with pytest.raises(ValidationError):
         AskRequest(question="x")
+
+
+def test_analysis_scores_and_counts_stay_within_contract():
+    dimension = Dimension(score=100)
+    analysis = Analysis(
+        repository="/workspace",
+        files=0,
+        languages={},
+        dependencies=[],
+        dimensions={"architecture": dimension},
+        overall_score=0,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    assert analysis.files == 0
+    assert analysis.overall_score == 0
+
+    with pytest.raises(ValidationError):
+        Dimension(score=101)
+
+    with pytest.raises(ValidationError):
+        Dimension(score=-1)
+
+    with pytest.raises(ValidationError):
+        Analysis(
+            repository="/workspace",
+            files=-1,
+            languages={},
+            dependencies=[],
+            dimensions={},
+            overall_score=50,
+            generated_at="2026-09-09T00:00:00Z",
+        )
+
+    with pytest.raises(ValidationError):
+        Analysis(
+            repository="/workspace",
+            files=1,
+            languages={},
+            dependencies=[],
+            dimensions={},
+            overall_score=101,
+            generated_at="2026-09-09T00:00:00Z",
+        )
