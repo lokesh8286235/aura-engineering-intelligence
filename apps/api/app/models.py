@@ -10,25 +10,25 @@ class AnalyzeRequest(BaseModel):
 
 
 class Finding(BaseModel):
-    severity: str
-    title: str
-    detail: str
+    severity: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    detail: str = Field(min_length=1)
     evidence: list[str] = Field(default_factory=list)
 
 
 class Dimension(BaseModel):
-    score: float
+    score: float = Field(ge=0, le=100)
     findings: list[Finding] = Field(default_factory=list)
 
 
 class Analysis(BaseModel):
-    repository: str
-    files: int
+    repository: str = Field(min_length=1)
+    files: int = Field(ge=0)
     languages: dict[str, int]
     dependencies: list[str]
     dimensions: dict[str, Dimension]
-    overall_score: float
-    generated_at: str
+    overall_score: float = Field(ge=0, le=100)
+    generated_at: str = Field(min_length=1)
 
 
 class AskRequest(BaseModel):
