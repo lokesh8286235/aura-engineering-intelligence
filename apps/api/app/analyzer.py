@@ -31,6 +31,20 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
     return found
 
 
+def _is_test_file(path: Path) -> bool:
+    """Identify conventional test/spec files without substring false positives."""
+    parts = [part.lower() for part in path.parts]
+    stem = path.stem.lower()
+    return (
+        any(part in {"test", "tests", "spec", "specs"} for part in parts)
+        or stem in {"test", "spec"}
+        or stem.startswith("test_")
+        or stem.endswith("_test")
+        or stem.startswith("spec_")
+        or stem.endswith("_spec")
+    )
+
+
 def _python_imports(text: str) -> list[str]:
     try:
         tree = ast.parse(text)
@@ -63,7 +77,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         languages[LANGUAGES[ext]] += 1
         relative = path.relative_to(root).as_posix()
         lower = relative.lower()
-        if "test" in path.name.lower() or path.name.lower().startswith("spec"):
+        if _is_test_file(path.relative_to(root)):
             test_files += 1
         if path.name.lower().startswith(("readme", "contributing", "changelog")) or "/docs/" in f"/{lower}/":
             docs_files += 1
