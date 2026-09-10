@@ -69,6 +69,18 @@ def _python_imports(text: str) -> list[str]:
     return values
 
 
+def _read_text(path: Path, max_bytes: int) -> str | None:
+    """Read at most max_bytes, protecting against files growing after scanning."""
+    try:
+        with path.open("rb") as handle:
+            data = handle.read(max_bytes + 1)
+    except OSError:
+        return None
+    if len(data) > max_bytes:
+        return None
+    return data.decode("utf-8", errors="ignore")
+
+
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
     if max_files <= 0:
         raise ValueError("max_files must be greater than zero")
@@ -98,17 +110,16 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
             docs_files += 1
         if ext in {".json", ".yaml", ".yml", ".toml"}:
             config_files += 1
-        try:
-            text = path.read_text(encoding="utf-8", errors="ignore")
-            total_lines += len(text.splitlines())
-            if ext == ".py":
-                dependencies.update(_python_imports(text))
-            elif path.name in {"package.json", "pyproject.toml", "go.mod"}:
-                for token in text.replace('"', " ").replace("'", " ").split():
-                    if "/" in token and len(token) < 120:
-                        dependencies[token.strip(",;:[]")]+=1
-        except OSError:
+        text = _read_text(path, max_file_bytes)
+        if text is None:
             continue
+        total_lines += len(text.splitlines())
+        if ext == ".py":
+            dependencies.update(_python_imports(text))
+        elif path.name in {"package.json", "pyproject.toml", "go.mod"}:
+            for token in text.replace('"', " ").replace("'", " ").split():
+                if "/" in token and len(token) < 120:
+                    dependencies[token.strip(",;:[]")]+=1
 
     file_count = len(paths)
     test_ratio = test_files / max(file_count, 1)

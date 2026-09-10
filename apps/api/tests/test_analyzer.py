@@ -69,3 +69,23 @@ def test_analyze_repository_rejects_non_positive_limits(tmp_path: Path) -> None:
         analyze_repository(str(tmp_path), max_files=0)
     with pytest.raises(ValueError, match="max_file_bytes must be greater than zero"):
         analyze_repository(str(tmp_path), max_file_bytes=0)
+
+
+def test_file_that_grows_after_scan_is_not_read_unbounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import analyzer
+
+    path = tmp_path / "app.py"
+    path.write_text("x = 1\n", encoding="utf-8")
+    original = analyzer._read_text
+
+    def grow_then_read(target: Path, max_bytes: int) -> str | None:
+        target.write_bytes(b"x" * (max_bytes + 1))
+        return original(target, max_bytes)
+
+    monkeypatch.setattr(analyzer, "_read_text", grow_then_read)
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
