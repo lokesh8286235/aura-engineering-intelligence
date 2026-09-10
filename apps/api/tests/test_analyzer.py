@@ -89,3 +89,23 @@ def test_file_that_grows_after_scan_is_not_read_unbounded(tmp_path: Path, monkey
     assert result.files == 1
     assert result.languages == {"Python": 1}
     assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
+
+
+def test_file_that_becomes_binary_after_scan_is_not_analyzed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import analyzer
+
+    path = tmp_path / "app.py"
+    path.write_text("x = 1\n", encoding="utf-8")
+    original = analyzer._read_text
+
+    def become_binary(target: Path, max_bytes: int) -> str | None:
+        target.write_bytes(b"x = 1\x00binary")
+        return original(target, max_bytes)
+
+    monkeypatch.setattr(analyzer, "_read_text", become_binary)
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
