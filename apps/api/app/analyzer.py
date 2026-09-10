@@ -4,6 +4,7 @@ import ast
 import json
 import os
 from collections import Counter
+from datetime import datetime, timezone
 from pathlib import Path
 
 from .models import Analysis, Dimension, Finding
@@ -134,4 +135,4 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     findings["maintainability"] = Dimension(score=round(size_score, 1), findings=[Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")])
 
     overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
-    return Analysis(repository=str(root), files=file_count, languages=dict(languages), dependencies=[name for name, _ in dependencies.most_common(30)], dimensions=findings, overall_score=overall, generated_at=__import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat())
+    return Analysis(repository=str(root), files=file_count, languages=dict(languages), dependencies=[name for name, _ in dependencies.most_common(30)], dimensions=findings, overall_score=overall, generated_at=datetime.now(timezone.utc).isoformat())
