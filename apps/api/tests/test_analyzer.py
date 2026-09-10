@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from app.analyzer import analyze_repository
 
 
@@ -50,3 +52,10 @@ def test_binary_files_do_not_consume_scan_limit(tmp_path: Path) -> None:
     assert result.files == 1
     assert result.languages == {"Python": 1}
     assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
+
+
+def test_analyze_repository_rejects_non_positive_limits(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="max_files must be greater than zero"):
+        analyze_repository(str(tmp_path), max_files=0)
+    with pytest.raises(ValueError, match="max_file_bytes must be greater than zero"):
+        analyze_repository(str(tmp_path), max_file_bytes=0)
