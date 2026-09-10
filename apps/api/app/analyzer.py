@@ -76,7 +76,7 @@ def _read_text(path: Path, max_bytes: int) -> str | None:
             data = handle.read(max_bytes + 1)
     except OSError:
         return None
-    if len(data) > max_bytes:
+    if len(data) > max_bytes or b"\x00" in data:
         return None
     return data.decode("utf-8", errors="ignore")
 
