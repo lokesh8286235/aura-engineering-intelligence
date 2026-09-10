@@ -64,6 +64,26 @@ def test_binary_files_do_not_consume_scan_limit(tmp_path: Path) -> None:
     assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
 
 
+def test_analyzer_reads_each_candidate_file_once(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import analyzer
+
+    (tmp_path / "a.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "b.py").write_text("value = 2\n", encoding="utf-8")
+    original = analyzer._read_text
+    calls: list[Path] = []
+
+    def record_read(path: Path, max_bytes: int) -> str | None:
+        calls.append(path)
+        return original(path, max_bytes)
+
+    monkeypatch.setattr(analyzer, "_read_text", record_read)
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 2
+    assert calls == [tmp_path / "a.py", tmp_path / "b.py"]
+
+
 def test_analyze_repository_rejects_non_positive_limits(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="max_files must be greater than zero"):
         analyze_repository(str(tmp_path), max_files=0)
