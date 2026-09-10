@@ -78,7 +78,10 @@ def _read_text(path: Path, max_bytes: int) -> str | None:
         return None
     if len(data) > max_bytes or b"\x00" in data:
         return None
-    return data.decode("utf-8", errors="ignore")
+    try:
+        return data.decode("utf-8")
+    except UnicodeDecodeError:
+        return None
 
 
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
