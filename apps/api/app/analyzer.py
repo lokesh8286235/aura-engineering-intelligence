@@ -13,6 +13,15 @@ SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "target",
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML"}
 
 
+def _looks_binary(path: Path) -> bool:
+    """Return True when the first 8 KiB contains a NUL byte."""
+    try:
+        with path.open("rb") as handle:
+            return b"\x00" in handle.read(8192)
+    except OSError:
+        return True
+
+
 def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
     found: list[Path] = []
     for current, dirs, names in os.walk(root, followlinks=False):
@@ -22,7 +31,7 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
             if path.suffix.lower() not in SUPPORTED or path.is_symlink():
                 continue
             try:
-                if path.stat().st_size <= max_bytes:
+                if path.stat().st_size <= max_bytes and not _looks_binary(path):
                     found.append(path)
             except OSError:
                 continue
