@@ -103,6 +103,9 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     config_files = 0
 
     for path in paths:
+        text = _read_text(path, max_file_bytes)
+        if text is None:
+            continue
         ext = path.suffix.lower()
         languages[LANGUAGES[ext]] += 1
         relative = path.relative_to(root).as_posix()
@@ -113,9 +116,6 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
             docs_files += 1
         if ext in {".json", ".yaml", ".yml", ".toml"}:
             config_files += 1
-        text = _read_text(path, max_file_bytes)
-        if text is None:
-            continue
         total_lines += len(text.splitlines())
         if ext == ".py":
             dependencies.update(_python_imports(text))
