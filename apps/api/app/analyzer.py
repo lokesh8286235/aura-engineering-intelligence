@@ -26,7 +26,7 @@ def _looks_binary(path: Path) -> bool:
 def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
     found: list[Path] = []
     for current, dirs, names in os.walk(root, followlinks=False):
-        dirs[:] = sorted(d for d in dirs if d not in SKIP_DIRS and not (Path(current) / d).is_symlink())
+        dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
             if path.suffix.lower() not in SUPPORTED or path.is_symlink():
