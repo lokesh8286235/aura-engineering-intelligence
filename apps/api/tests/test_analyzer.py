@@ -71,7 +71,7 @@ def test_analyze_repository_rejects_non_positive_limits(tmp_path: Path) -> None:
         analyze_repository(str(tmp_path), max_file_bytes=0)
 
 
-def test_file_that_grows_after_scan_is_not_read_unbounded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_file_that_grows_during_scan_is_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app import analyzer
 
     path = tmp_path / "app.py"
@@ -86,12 +86,11 @@ def test_file_that_grows_after_scan_is_not_read_unbounded(tmp_path: Path, monkey
 
     result = analyze_repository(str(tmp_path))
 
-    assert result.files == 1
-    assert result.languages["Python"] == 1
-    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
+    assert result.files == 0
+    assert result.languages == {}
 
 
-def test_file_that_becomes_binary_after_scan_is_not_analyzed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_file_that_becomes_binary_during_scan_is_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app import analyzer
 
     path = tmp_path / "app.py"
@@ -106,9 +105,8 @@ def test_file_that_becomes_binary_after_scan_is_not_analyzed(tmp_path: Path, mon
 
     result = analyze_repository(str(tmp_path))
 
-    assert result.files == 1
-    assert result.languages["Python"] == 1
-    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
+    assert result.files == 0
+    assert result.languages == {}
 
 
 def test_invalid_utf8_files_are_not_analyzed(tmp_path: Path) -> None:
