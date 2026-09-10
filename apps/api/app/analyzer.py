@@ -69,6 +69,11 @@ def _python_imports(text: str) -> list[str]:
 
 
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
+    if max_files <= 0:
+        raise ValueError("max_files must be greater than zero")
+    if max_file_bytes <= 0:
+        raise ValueError("max_file_bytes must be greater than zero")
+
     root = Path(repository).expanduser().resolve()
     if not root.exists() or not root.is_dir():
         raise ValueError("repository must be an existing directory")
