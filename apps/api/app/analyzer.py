@@ -14,15 +14,6 @@ SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "target",
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML"}
 
 
-def _looks_binary(path: Path) -> bool:
-    """Return True when the first 8 KiB contains a NUL byte."""
-    try:
-        with path.open("rb") as handle:
-            return b"\x00" in handle.read(8192)
-    except OSError:
-        return True
-
-
 def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
     """Return bounded, validated text once so callers do not reread files."""
     found: list[tuple[Path, str]] = []
@@ -33,8 +24,6 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
             if path.suffix.lower() not in SUPPORTED or path.is_symlink():
                 continue
             try:
-                if path.stat().st_size > max_bytes or _looks_binary(path):
-                    continue
                 text = _read_text(path, max_bytes)
             except OSError:
                 continue
@@ -75,12 +64,9 @@ def _python_imports(text: str) -> list[str]:
 
 
 def _read_text(path: Path, max_bytes: int) -> str | None:
-    """Read at most max_bytes, protecting against files growing after scanning."""
-    try:
-        with path.open("rb") as handle:
-            data = handle.read(max_bytes + 1)
-    except OSError:
-        return None
+    """Read at most max_bytes, protecting against growth and binary data."""
+    with path.open("rb") as handle:
+        data = handle.read(max_bytes + 1)
     if len(data) > max_bytes or b"\x00" in data:
         return None
     try:
