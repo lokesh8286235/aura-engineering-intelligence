@@ -28,3 +28,14 @@ def test_test_detection_supports_conventional_spec_and_test_names(tmp_path: Path
     result = analyze_repository(str(tmp_path))
     assert result.dimensions["testing"].findings[0].severity == "info"
     assert "test_ratio=0.67" in result.dimensions["testing"].findings[0].evidence
+
+
+def test_file_scan_is_deterministic_when_max_files_limits_results(tmp_path: Path) -> None:
+    (tmp_path / "z_module.py").write_text("value = 'z'\n", encoding="utf-8")
+    (tmp_path / "a_module.py").write_text("value = 'a'\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path), max_files=1)
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
