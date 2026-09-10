@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -13,6 +14,15 @@ def test_analyze_repository(tmp_path: Path) -> None:
     assert result.languages["Python"] == 2
     assert "json" in result.dependencies
     assert result.overall_score > 0
+
+
+def test_generated_at_is_utc_iso8601(tmp_path: Path) -> None:
+    result = analyze_repository(str(tmp_path))
+
+    timestamp = datetime.fromisoformat(result.generated_at)
+
+    assert timestamp.tzinfo is not None
+    assert timestamp.utcoffset().total_seconds() == 0
 
 
 def test_test_detection_does_not_match_unrelated_substrings(tmp_path: Path) -> None:
