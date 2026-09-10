@@ -23,8 +23,9 @@ def _looks_binary(path: Path) -> bool:
         return True
 
 
-def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
-    found: list[Path] = []
+def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
+    """Return bounded, validated text once so callers do not reread files."""
+    found: list[tuple[Path, str]] = []
     for current, dirs, names in os.walk(root, followlinks=False):
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
@@ -32,10 +33,14 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[Path]:
             if path.suffix.lower() not in SUPPORTED or path.is_symlink():
                 continue
             try:
-                if path.stat().st_size <= max_bytes and not _looks_binary(path):
-                    found.append(path)
+                if path.stat().st_size > max_bytes or _looks_binary(path):
+                    continue
+                text = _read_text(path, max_bytes)
             except OSError:
                 continue
+            if text is None:
+                continue
+            found.append((path, text))
             if len(found) >= limit:
                 return found
     return found
@@ -102,10 +107,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     docs_files = 0
     config_files = 0
 
-    for path in paths:
-        text = _read_text(path, max_file_bytes)
-        if text is None:
-            continue
+    for path, text in paths:
         ext = path.suffix.lower()
         languages[LANGUAGES[ext]] += 1
         relative = path.relative_to(root).as_posix()
