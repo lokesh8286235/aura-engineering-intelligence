@@ -112,7 +112,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         total_lines += len(text.splitlines())
         if ext == ".py":
             dependencies.update(_python_imports(text))
-        elif path.name in {"package.json", "pyproject.toml", "go.mod"}:
+        elif path.name.lower() in {"package.json", "pyproject.toml", "go.mod"}:
             for token in text.replace('"', " ").replace("'", " ").split():
                 if "/" in token and len(token) < 120:
                     dependencies[token.strip(",;:[]")]+=1
