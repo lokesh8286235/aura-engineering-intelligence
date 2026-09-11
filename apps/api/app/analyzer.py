@@ -10,7 +10,7 @@ from pathlib import Path
 from .models import Analysis, Dimension, Finding
 
 SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".json", ".yaml", ".yml", ".toml"}
-SKIP_DIRS = {".git", ".terraform", "node_modules", ".venv", "venv", "dist", "build", "target", "__pycache__"}
+SKIP_DIRS = {".git", ".terraform", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {"credentials.json", "credentials.yml", "credentials.yaml"}
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML"}
 MAX_FILE_BYTES = 5_000_000
