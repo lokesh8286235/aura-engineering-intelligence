@@ -147,7 +147,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     findings["testing"] = Dimension(score=round(test_score, 1), findings=test_findings)
 
     docs_score = min(100.0, 55 + docs_ratio * 180)
-    docs_findings = [Finding(severity="info", title="Documentation signal", detail=f"Detected {docs_files} documentation-oriented files.", evidence=[f"docs_ratio={docs_ratio:.2f"])]
+    docs_findings = [Finding(severity="info", title="Documentation signal", detail=f"Detected {docs_files} documentation-oriented files.", evidence=[f"docs_ratio={docs_ratio:.2f}"])]
     findings["documentation"] = Dimension(score=round(docs_score, 1), findings=docs_findings)
 
     config_score = min(100.0, 50 + config_ratio * 150)
