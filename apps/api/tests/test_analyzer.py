@@ -252,6 +252,17 @@ def test_markdown_documentation_is_analyzed(tmp_path: Path) -> None:
     assert result.dimensions["documentation"].findings[0].evidence == ["docs_ratio=0.50"]
 
 
+def test_mdx_documentation_is_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "guide.mdx").write_text("# Guide\n\nInteractive documentation.\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 2
+    assert result.languages["Markdown"] == 1
+    assert result.dimensions["documentation"].findings[0].evidence == ["docs_ratio=0.50"]
+
+
 def test_dotenv_files_are_not_analyzed(tmp_path: Path) -> None:
     (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
     for name in (".env", ".env.local", ".env.development", ".env.production", ".env.test"):
