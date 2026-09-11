@@ -160,6 +160,18 @@ def test_ignored_directories_are_case_insensitive(tmp_path: Path) -> None:
     assert result.languages == {"Python": 1}
 
 
+def test_generated_terraform_directory_is_ignored_case_insensitively(tmp_path: Path) -> None:
+    generated = tmp_path / ".Terraform"
+    generated.mkdir()
+    (generated / "provider.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 2\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+
+
 def test_dependency_manifest_detection_is_case_insensitive(tmp_path: Path) -> None:
     (tmp_path / "PACKAGE.JSON").write_text('{"dependencies": {"@scope/library": "^1.0.0"}}\n', encoding="utf-8")
 
