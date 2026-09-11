@@ -239,3 +239,14 @@ def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path,
     assert exact_result.files == 2
     assert not any(f.title == "Analysis scan truncated" for f in exact_result.dimensions["maintainability"].findings)
     assert calls == [tmp_path / "a.py", tmp_path / "b.py"]
+
+
+def test_markdown_documentation_is_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "README.md").write_text("# Project\n\nUsage notes.\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 2
+    assert result.languages["Markdown"] == 1
+    assert result.dimensions["documentation"].findings[0].evidence == ["docs_ratio=0.50"]
