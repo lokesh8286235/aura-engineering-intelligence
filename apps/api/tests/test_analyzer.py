@@ -166,3 +166,14 @@ def test_dependency_manifest_detection_is_case_insensitive(tmp_path: Path) -> No
     result = analyze_repository(str(tmp_path))
 
     assert "@scope/library" in result.dependencies
+
+
+def test_sensitive_credential_manifests_are_not_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "credentials.json").write_text('{"token": "secret"}\n', encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert "secret" not in result.dependencies

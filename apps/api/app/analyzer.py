@@ -11,6 +11,7 @@ from .models import Analysis, Dimension, Finding
 
 SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".json", ".yaml", ".yml", ".toml"}
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "target", "__pycache__"}
+SENSITIVE_FILENAMES = {"credentials.json", "credentials.yml", "credentials.yaml"}
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML"}
 MAX_FILE_BYTES = 5_000_000
 
@@ -22,7 +23,7 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
-            if path.suffix.lower() not in SUPPORTED or path.is_symlink():
+            if path.suffix.lower() not in SUPPORTED or path.is_symlink() or path.name.lower() in SENSITIVE_FILENAMES:
                 continue
             try:
                 text = _read_text(path, max_bytes)
