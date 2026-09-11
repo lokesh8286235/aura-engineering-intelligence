@@ -177,3 +177,29 @@ def test_sensitive_credential_manifests_are_not_analyzed(tmp_path: Path) -> None
     assert result.files == 1
     assert result.languages == {"Python": 1}
     assert "secret" not in result.dependencies
+
+
+def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import analyzer
+
+    (tmp_path / "a.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "b.py").write_text("value = 2\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path), max_files=1)
+
+    assert result.files == 1
+    assert any(f.title == "Analysis scan truncated" for f in result.dimensions["maintainability"].findings)
+
+    calls: list[Path] = []
+    original = analyzer._read_text
+
+    def record_read(path: Path, max_bytes: int) -> str | None:
+        calls.append(path)
+        return original(path, max_bytes)
+
+    monkeypatch.setattr(analyzer, "_read_text", record_read)
+    exact_result = analyze_repository(str(tmp_path), max_files=2)
+
+    assert exact_result.files == 2
+    assert not any(f.title == "Analysis scan truncated" for f in exact_result.dimensions["maintainability"].findings)
+    assert calls == [tmp_path / "a.py", tmp_path / "b.py"]

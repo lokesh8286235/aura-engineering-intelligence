@@ -16,8 +16,8 @@ LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": 
 MAX_FILE_BYTES = 5_000_000
 
 
-def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
-    """Return bounded, validated text once so callers do not reread files."""
+def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
+    """Return bounded, validated text once and report whether traversal was truncated."""
     found: list[tuple[Path, str]] = []
     for current, dirs, names in os.walk(root, followlinks=False):
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
@@ -32,9 +32,9 @@ def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
             if text is None:
                 continue
             found.append((path, text))
-            if len(found) >= limit:
-                return found
-    return found
+            if len(found) > limit:
+                return found[:limit], True
+    return found, False
 
 
 def _is_test_file(path: Path) -> bool:
@@ -91,7 +91,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     if not root.exists() or not root.is_dir():
         raise ValueError("repository must be an existing directory")
 
-    paths = _files(root, max_files, max_file_bytes)
+    paths, truncated = _files(root, max_files, max_file_bytes)
     languages = Counter()
     dependencies: Counter[str] = Counter()
     total_lines = 0
@@ -140,7 +140,10 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     findings["configuration"] = Dimension(score=round(config_score, 1), findings=[Finding(severity="info", title="Configuration inventory", detail=f"Detected {config_files} configuration/data definition files.")])
 
     size_score = 100.0 if total_lines == 0 else max(35.0, 100 - max(0, total_lines - 10_000) / 500)
-    findings["maintainability"] = Dimension(score=round(size_score, 1), findings=[Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")])
+    maintainability_findings = [Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")]
+    if truncated:
+        maintainability_findings.append(Finding(severity="info", title="Analysis scan truncated", detail=f"The file scan stopped after the configured max_files limit of {max_files} valid files.", evidence=[f"max_files={max_files}"]))
+    findings["maintainability"] = Dimension(score=round(size_score, 1), findings=maintainability_findings)
 
     overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
     return Analysis(repository=str(root), files=file_count, languages=dict(languages), dependencies=[name for name, _ in dependencies.most_common(30)], dimensions=findings, overall_score=overall, generated_at=datetime.now(timezone.utc).isoformat())
