@@ -96,6 +96,11 @@ def test_analyze_repository_rejects_excessive_file_limit(tmp_path: Path) -> None
         analyze_repository(str(tmp_path), max_files=10_001)
 
 
+def test_analyze_repository_rejects_excessive_file_size(tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="max_file_bytes must be less than or equal to 5000000"):
+        analyze_repository(str(tmp_path), max_file_bytes=5_000_001)
+
+
 def test_file_that_grows_during_scan_is_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app import analyzer
 

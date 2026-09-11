@@ -12,6 +12,7 @@ from .models import Analysis, Dimension, Finding
 SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".json", ".yaml", ".yml", ".toml"}
 SKIP_DIRS = {".git", "node_modules", ".venv", "venv", "dist", "build", "target", "__pycache__"}
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML"}
+MAX_FILE_BYTES = 5_000_000
 
 
 def _files(root: Path, limit: int, max_bytes: int) -> list[tuple[Path, str]]:
@@ -82,6 +83,8 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         raise ValueError("max_files must be less than or equal to 10000")
     if max_file_bytes <= 0:
         raise ValueError("max_file_bytes must be greater than zero")
+    if max_file_bytes > MAX_FILE_BYTES:
+        raise ValueError(f"max_file_bytes must be less than or equal to {MAX_FILE_BYTES}")
 
     root = Path(repository).expanduser().resolve()
     if not root.exists() or not root.is_dir():
