@@ -203,6 +203,18 @@ def test_sensitive_credential_manifests_are_not_analyzed(tmp_path: Path) -> None
     assert "secret" not in result.dependencies
 
 
+def test_common_secret_manifests_are_not_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+    for name in ("secrets.json", "secrets.yaml", "secrets.yml", "service-account.json", "service_account.json"):
+        (tmp_path / name).write_text('{"token": "secret"}\n', encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert "secret" not in result.dependencies
+
+
 def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app import analyzer
 
