@@ -172,6 +172,18 @@ def test_generated_terraform_directory_is_ignored_case_insensitively(tmp_path: P
     assert result.languages == {"Python": 1}
 
 
+def test_python_cache_directories_are_ignored_case_insensitively(tmp_path: Path) -> None:
+    cache = tmp_path / ".PyTest_Cache"
+    cache.mkdir()
+    (cache / "metadata.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 2\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+
+
 def test_dependency_manifest_detection_is_case_insensitive(tmp_path: Path) -> None:
     (tmp_path / "PACKAGE.JSON").write_text('{"dependencies": {"@scope/library": "^1.0.0"}}\n', encoding="utf-8")
 
