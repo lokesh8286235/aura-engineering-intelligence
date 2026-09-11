@@ -158,3 +158,11 @@ def test_ignored_directories_are_case_insensitive(tmp_path: Path) -> None:
 
     assert result.files == 1
     assert result.languages == {"Python": 1}
+
+
+def test_dependency_manifest_detection_is_case_insensitive(tmp_path: Path) -> None:
+    (tmp_path / "PACKAGE.JSON").write_text('{"dependencies": {"@scope/library": "^1.0.0"}}\n', encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert "@scope/library" in result.dependencies
