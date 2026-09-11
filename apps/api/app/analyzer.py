@@ -12,6 +12,11 @@ from .models import Analysis, Dimension, Finding
 SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md"}
 SKIP_DIRS = {".git", ".terraform", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {
+    ".env",
+    ".env.local",
+    ".env.development",
+    ".env.production",
+    ".env.test",
     "credentials.json",
     "credentials.yml",
     "credentials.yaml",
