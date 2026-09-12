@@ -9,8 +9,8 @@ from pathlib import Path
 
 from .models import Analysis, Dimension, Finding
 
-SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
-SKIP_DIRS = {".git", ".terraform", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build", "target", "__pycache__"}
+SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
+SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {
     ".env",
     ".env.local",
@@ -26,7 +26,7 @@ SENSITIVE_FILENAMES = {
     "service-account.json",
     "service_account.json",
 }
-LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
+LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
 MAX_FILE_BYTES = 5_000_000
 
 
