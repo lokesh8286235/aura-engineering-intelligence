@@ -33,7 +33,7 @@ MAX_FILE_BYTES = 5_000_000
 def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
     """Return bounded, validated text once and report whether traversal was truncated."""
     found: list[tuple[Path, str]] = []
-    for current, dirs, names in os.walk(root, followlinks=False):
+    for current, dirs, names in os.walk(root, topdown=True, followlinks=False):
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
