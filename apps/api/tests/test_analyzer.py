@@ -63,6 +63,21 @@ def test_file_scan_is_deterministic_when_max_files_limits_results(tmp_path: Path
     assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
 
 
+def test_nested_directory_traversal_is_deterministic_when_max_files_limits_results(tmp_path: Path) -> None:
+    z_dir = tmp_path / "z_src"
+    a_dir = tmp_path / "a_src"
+    z_dir.mkdir()
+    a_dir.mkdir()
+    (z_dir / "module.py").write_text("value = 'z'\n", encoding="utf-8")
+    (a_dir / "module.py").write_text("value = 'a'\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path), max_files=1)
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert result.dimensions["maintainability"].findings[0].detail.endswith("across 1 files.")
+
+
 def test_binary_files_do_not_consume_scan_limit(tmp_path: Path) -> None:
     (tmp_path / "a_binary.py").write_bytes(b"print('ok')\x00binary")
     (tmp_path / "b_source.py").write_text("value = 1\n", encoding="utf-8")
