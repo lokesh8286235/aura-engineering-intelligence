@@ -42,6 +42,16 @@ def test_test_detection_supports_conventional_spec_and_test_names(tmp_path: Path
     assert "test_ratio=0.67" in result.dimensions["testing"].findings[0].evidence
 
 
+def test_test_detection_supports_dotted_javascript_and_typescript_names(tmp_path: Path) -> None:
+    (tmp_path / "parser.test.js").write_text("export const parse = () => true;\n", encoding="utf-8")
+    (tmp_path / "parser.spec.ts").write_text("export const parse = () => true;\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.dimensions["testing"].findings[0].evidence == ["test_ratio=0.67"]
+
+
 def test_file_scan_is_deterministic_when_max_files_limits_results(tmp_path: Path) -> None:
     (tmp_path / "z_module.py").write_text("value = 'z'\n", encoding="utf-8")
     (tmp_path / "a_module.py").write_text("value = 'a'\n", encoding="utf-8")
