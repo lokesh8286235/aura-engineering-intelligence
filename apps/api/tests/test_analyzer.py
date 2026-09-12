@@ -283,3 +283,28 @@ def test_dotenv_files_are_not_analyzed(tmp_path: Path) -> None:
     assert result.files == 1
     assert result.languages == {"Python": 1}
     assert "super-secret" not in result.dependencies
+
+
+def test_modern_javascript_and_typescript_modules_are_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "server.mjs").write_text("export const app = true;\n", encoding="utf-8")
+    (tmp_path / "config.cjs").write_text("module.exports = {};\n", encoding="utf-8")
+    (tmp_path / "types.mts").write_text("export type ID = string;\n", encoding="utf-8")
+    (tmp_path / "types.cts").write_text("export const id = 1;\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 4
+    assert result.languages == {"JavaScript": 2, "TypeScript": 2}
+
+
+def test_frontend_build_caches_are_ignored_case_insensitively(tmp_path: Path) -> None:
+    for dirname in (".Turbo", ".Vercel"):
+        generated = tmp_path / dirname
+        generated.mkdir()
+        (generated / "generated.js").write_text("module.exports = {};\n", encoding="utf-8")
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
