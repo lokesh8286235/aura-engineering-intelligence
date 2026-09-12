@@ -122,7 +122,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         lower = relative.lower()
         if _is_test_file(path.relative_to(root)):
             test_files += 1
-        if path.name.lower().startswith(("readme", "contributing", "changelog")) or "/docs/" in f"/{lower}/":
+        if ext in {".md", ".mdx"} or path.name.lower().startswith(("readme", "contributing", "changelog")) or "/docs/" in f"/{lower}/":
             docs_files += 1
         if ext in {".json", ".yaml", ".yml", ".toml"}:
             config_files += 1
