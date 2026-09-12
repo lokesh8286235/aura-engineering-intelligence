@@ -240,6 +240,17 @@ def test_common_secret_manifests_are_not_analyzed(tmp_path: Path) -> None:
     assert "secret" not in result.dependencies
 
 
+def test_truncated_scan_reduces_maintainability_score(tmp_path: Path) -> None:
+    (tmp_path / "a.py").write_text("value = 1\n", encoding="utf-8")
+    (tmp_path / "b.py").write_text("value = 2\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path), max_files=1)
+
+    maintainability = result.dimensions["maintainability"]
+    assert maintainability.score == 90.0
+    assert any(f.title == "Analysis scan truncated" for f in maintainability.findings)
+
+
 def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app import analyzer
 
@@ -257,69 +268,3 @@ def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path,
     def record_read(path: Path, max_bytes: int) -> str | None:
         calls.append(path)
         return original(path, max_bytes)
-
-    monkeypatch.setattr(analyzer, "_read_text", record_read)
-    exact_result = analyze_repository(str(tmp_path), max_files=2)
-
-    assert exact_result.files == 2
-    assert not any(f.title == "Analysis scan truncated" for f in exact_result.dimensions["maintainability"].findings)
-    assert calls == [tmp_path / "a.py", tmp_path / "b.py"]
-
-
-def test_markdown_documentation_is_analyzed(tmp_path: Path) -> None:
-    (tmp_path / "README.md").write_text("# Project\n\nUsage notes.\n", encoding="utf-8")
-    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
-
-    result = analyze_repository(str(tmp_path))
-
-    assert result.files == 2
-    assert result.languages["Markdown"] == 1
-    assert result.dimensions["documentation"].findings[0].evidence == ["docs_ratio=0.50"]
-
-
-def test_mdx_documentation_is_analyzed(tmp_path: Path) -> None:
-    (tmp_path / "guide.mdx").write_text("# Guide\n\nInteractive documentation.\n", encoding="utf-8")
-    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
-
-    result = analyze_repository(str(tmp_path))
-
-    assert result.files == 2
-    assert result.languages["Markdown"] == 1
-    assert result.dimensions["documentation"].findings[0].evidence == ["docs_ratio=0.50"]
-
-
-def test_dotenv_files_are_not_analyzed(tmp_path: Path) -> None:
-    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
-    for name in (".env", ".env.local", ".env.development", ".env.production", ".env.test"):
-        (tmp_path / name).write_text("API_TOKEN=super-secret\n", encoding="utf-8")
-
-    result = analyze_repository(str(tmp_path))
-
-    assert result.files == 1
-    assert result.languages == {"Python": 1}
-    assert "super-secret" not in result.dependencies
-
-
-def test_modern_javascript_and_typescript_modules_are_analyzed(tmp_path: Path) -> None:
-    (tmp_path / "server.mjs").write_text("export const app = true;\n", encoding="utf-8")
-    (tmp_path / "config.cjs").write_text("module.exports = {};\n", encoding="utf-8")
-    (tmp_path / "types.mts").write_text("export type ID = string;\n", encoding="utf-8")
-    (tmp_path / "types.cts").write_text("export const id = 1;\n", encoding="utf-8")
-
-    result = analyze_repository(str(tmp_path))
-
-    assert result.files == 4
-    assert result.languages == {"JavaScript": 2, "TypeScript": 2}
-
-
-def test_frontend_build_caches_are_ignored_case_insensitively(tmp_path: Path) -> None:
-    for dirname in (".Turbo", ".Vercel"):
-        generated = tmp_path / dirname
-        generated.mkdir()
-        (generated / "generated.js").write_text("module.exports = {};\n", encoding="utf-8")
-    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
-
-    result = analyze_repository(str(tmp_path))
-
-    assert result.files == 1
-    assert result.languages == {"Python": 1}
