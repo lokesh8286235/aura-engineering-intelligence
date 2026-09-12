@@ -159,6 +159,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     maintainability_findings = [Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")]
     if truncated:
         maintainability_findings.append(Finding(severity="info", title="Analysis scan truncated", detail=f"The file scan stopped after the configured max_files limit of {max_files} valid files.", evidence=[f"max_files={max_files}"]))
+        size_score = max(0.0, size_score - 10.0)
     findings["maintainability"] = Dimension(score=round(size_score, 1), findings=maintainability_findings)
 
     overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
