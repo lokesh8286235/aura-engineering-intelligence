@@ -1,29 +1,24 @@
 # AURA — Autonomous Engineering Intelligence
 
-A production-oriented engineering intelligence platform that turns a software repository into a living, queryable model of architecture, dependencies, risks, and operational health.
+> **A production-oriented engineering intelligence platform that turns a software repository into an explainable model of architecture, dependencies, and engineering health.**
 
-## First release
+AURA is an independent systems project focused on a hard problem: giving engineers useful repository-level answers while keeping the analysis bounded, deterministic where possible, and grounded in repository evidence.
 
-- **FastAPI** service with typed request/response models
-- Repository analysis for Python, TypeScript/JavaScript, Java, Go, and common config files
-- Dependency extraction and architecture metrics
-- Deterministic engineering health scoring with explainable findings
-- Provider-agnostic intelligence interface
-- **Next.js + TypeScript** dashboard starter
-- Docker Compose for local development
-- CI for backend tests and frontend validation
+## The problem
+
+Large codebases contain architecture knowledge implicitly—in files, imports, tests, configuration, documentation, and conventions. AURA makes those signals queryable instead of relying on a model to guess the structure.
 
 ## Architecture
 
 ```text
                          ┌─────────────────────────┐
                          │       Next.js UI        │
-                         │  repo health / insights │
+                         │ health / repository UX  │
                          └────────────┬────────────┘
                                       │ HTTP
                          ┌────────────▼────────────┐
                          │       FastAPI API       │
-                         │ analysis · health · ask │
+                         │ analyze · health · ask  │
                          └───────┬─────────┬───────┘
                                  │         │
                     ┌────────────▼───┐ ┌──▼────────────────┐
@@ -32,10 +27,59 @@ A production-oriented engineering intelligence platform that turns a software re
                     └───────┬────────┘ └───────────────────┘
                             │
                     ┌───────▼────────┐
-                    │ Graph + metrics│
-                    │ deterministic   │
+                    │ Evidence model │
+                    │ + dimensions   │
                     └────────────────┘
 ```
+
+## What is implemented
+
+- **Multi-language repository analysis** — Python, TypeScript/JavaScript, Java, Go, and common configuration/documentation files.
+- **Dependency extraction** — Python imports and package/module signals are collected into a bounded dependency inventory.
+- **Engineering health model** — testing, documentation, configuration, and maintainability dimensions are scored independently.
+- **Explainable findings** — dimensions contain findings and evidence rather than an opaque aggregate alone.
+- **Bounded ingestion** — configurable file-count and file-size limits protect analysis from pathological repositories.
+- **Security-aware traversal** — symlink traversal is rejected and common credential/configuration artifacts are excluded.
+- **Typed API** — FastAPI request/response models define the service contract.
+- **Provider isolation** — model-assisted answers sit behind a replaceable provider interface.
+- **Next.js + TypeScript dashboard foundation** for presenting repository intelligence.
+
+## Engineering decisions
+
+| Decision | Rationale |
+|---|---|
+| Deterministic repository analysis first | Establish a debuggable source of truth before model inference. |
+| Evidence attached to findings | Engineers can inspect why a score or risk exists. |
+| Bounded file ingestion | Prevent resource-heavy or pathological repository scans. |
+| Sensitive-file exclusion | Avoid feeding common credentials/config secrets into analysis. |
+| Provider abstraction | Keep AI integration replaceable and testable. |
+| Versioned API contracts | Make future ingestion and intelligence layers easier to evolve. |
+
+## Security boundary
+
+The analyzer skips unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
+
+This is deliberately defense-in-depth: input limits, path filtering, deterministic traversal, and provider isolation reduce the amount of untrusted repository data that can reach downstream reasoning.
+
+## API
+
+### `GET /v1/health`
+
+Returns service health and version information.
+
+### `POST /v1/analyze`
+
+```json
+{
+  "repository": "/workspace/example",
+  "max_files": 500,
+  "max_file_bytes": 512000
+}
+```
+
+### `POST /v1/ask`
+
+Accepts an engineering question and can build repository context before passing it to the configured provider.
 
 ## Quick start
 
@@ -65,38 +109,46 @@ npm run dev
 docker compose up --build
 ```
 
-## API
+## Engineering loop
 
-`POST /v1/analyze`
-
-```json
-{
-  "repository": "/workspace/example",
-  "max_files": 500,
-  "max_file_bytes": 512000
-}
+```text
+Repository
+   ↓
+Bounded ingestion
+   ↓
+Deterministic evidence
+   ↓
+Health / architecture signals
+   ↓
+Optional retrieval + model reasoning
+   ↓
+Answer with evidence
+   ↓
+Evaluate and improve
 ```
 
-The analyzer requires both limits to be positive. The API model accepts `max_files` from 1 to 5,000 and `max_file_bytes` from 1,024 to 5,000,000 bytes. Unsupported extensions, symlinks, ignored directories, oversized files, and files detected as binary are skipped before analysis. File traversal is deterministic so scan-limit results are reproducible.
-
-For security, known credential/configuration artifacts such as `.env` variants, `credentials.*`, `secrets.*`, and service-account JSON files are excluded from repository analysis even when their extension is otherwise supported. Generated/cache directories are also skipped so build output does not distort engineering metrics.
-
-`GET /v1/health` returns service health. `POST /v1/ask` provides a provider-agnostic engineering question interface.
-
-## Design principles
-
-1. **Evidence before inference.** Metrics are computed from repository artifacts, not invented by an LLM.
-2. **Provider isolation.** Model calls live behind a narrow interface so the core platform is testable without an API key.
-3. **Explainable scores.** Every health dimension has findings and evidence.
-4. **Incremental evolution.** Analyzer contracts are compatible with future GitHub ingestion, embeddings, knowledge graphs, agents, evaluations, and observability.
-5. **Security by default.** The API applies file-count and file-size limits, excludes known credential artifacts, and refuses symlink traversal.
+The core design principle is simple: **AI should explain engineering evidence, not replace it.**
 
 ## Roadmap
 
-- GitHub App ingestion and webhook-driven re-indexing
-- PostgreSQL + pgvector retrieval
-- Code symbol graph and architecture drift detection
-- PR risk analysis
-- Debug / security / performance / test agents
-- OpenTelemetry traces and evaluation datasets
-- Multi-tenant authentication and RBAC
+- [x] Multi-language repository inventory
+- [x] Dependency extraction
+- [x] Explainable health dimensions
+- [x] Bounded and security-aware ingestion
+- [x] FastAPI + Next.js foundation
+- [ ] Symbol-level architecture graph
+- [ ] Architecture drift detection
+- [ ] PR risk and change-impact analysis
+- [ ] Hybrid retrieval and reranking
+- [ ] Repository investigation agents
+- [ ] OpenTelemetry instrumentation
+- [ ] Versioned AI evaluation datasets
+- [ ] Production deployment hardening
+
+## Status
+
+**Active independent build.** Current work prioritizes structural analysis, security boundaries, evaluation, and explainability before adding more autonomous behavior.
+
+## License
+
+MIT
