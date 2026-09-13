@@ -79,6 +79,8 @@ docker compose up --build
 
 The analyzer requires both limits to be positive. The API model accepts `max_files` from 1 to 5,000 and `max_file_bytes` from 1,024 to 5,000,000 bytes. Unsupported extensions, symlinks, ignored directories, oversized files, and files detected as binary are skipped before analysis. File traversal is deterministic so scan-limit results are reproducible.
 
+For security, known credential/configuration artifacts such as `.env` variants, `credentials.*`, `secrets.*`, and service-account JSON files are excluded from repository analysis even when their extension is otherwise supported. Generated/cache directories are also skipped so build output does not distort engineering metrics.
+
 `GET /v1/health` returns service health. `POST /v1/ask` provides a provider-agnostic engineering question interface.
 
 ## Design principles
@@ -87,7 +89,7 @@ The analyzer requires both limits to be positive. The API model accepts `max_fil
 2. **Provider isolation.** Model calls live behind a narrow interface so the core platform is testable without an API key.
 3. **Explainable scores.** Every health dimension has findings and evidence.
 4. **Incremental evolution.** Analyzer contracts are compatible with future GitHub ingestion, embeddings, knowledge graphs, agents, evaluations, and observability.
-5. **Security by default.** The API applies file-count and file-size limits and refuses symlink traversal.
+5. **Security by default.** The API applies file-count and file-size limits, excludes known credential artifacts, and refuses symlink traversal.
 
 ## Roadmap
 
