@@ -10,7 +10,7 @@ from pathlib import Path
 from .models import Analysis, Dimension, Finding
 
 SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
-SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", "dist", "build", "target", "__pycache__"}
+SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", ".cache", ".parcel-cache", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".nox", "coverage", "htmlcov", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {
     ".env",
     ".env.local",
