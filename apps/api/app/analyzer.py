@@ -20,9 +20,11 @@ SENSITIVE_FILENAMES = {
     "credentials.json",
     "credentials.yml",
     "credentials.yaml",
+    "credentials.toml",
     "secrets.json",
     "secrets.yml",
     "secrets.yaml",
+    "secrets.toml",
     "service-account.json",
     "service_account.json",
 }
