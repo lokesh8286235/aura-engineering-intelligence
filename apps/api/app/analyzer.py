@@ -142,27 +142,40 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     config_ratio = config_files / max(file_count, 1)
     findings: dict[str, Dimension] = {}
 
-    test_score = min(100.0, 45 + test_ratio * 220)
-    test_findings = []
-    if test_files == 0:
-        test_findings.append(Finding(severity="high", title="No test files detected", detail="AURA could not identify repository tests in the analyzed file set."))
+    if file_count == 0:
+        empty_finding = Finding(
+            severity="high",
+            title="No analyzable files detected",
+            detail="AURA could not analyze any supported, valid text files in the repository. Quality scores are therefore set to zero rather than implying evidence that was not observed.",
+            evidence=["files=0"],
+        )
+        findings["testing"] = Dimension(score=0.0, findings=[empty_finding])
+        findings["documentation"] = Dimension(score=0.0, findings=[empty_finding])
+        findings["configuration"] = Dimension(score=0.0, findings=[empty_finding])
+        findings["maintainability"] = Dimension(score=0.0, findings=[empty_finding])
+        overall = 0.0
     else:
-        test_findings.append(Finding(severity="info", title="Test surface detected", detail=f"Detected {test_files} likely test files among {file_count} analyzed files.", evidence=[f"test_ratio={test_ratio:.2f}"]))
-    findings["testing"] = Dimension(score=round(test_score, 1), findings=test_findings)
+        test_score = min(100.0, 45 + test_ratio * 220)
+        test_findings = []
+        if test_files == 0:
+            test_findings.append(Finding(severity="high", title="No test files detected", detail="AURA could not identify repository tests in the analyzed file set."))
+        else:
+            test_findings.append(Finding(severity="info", title="Test surface detected", detail=f"Detected {test_files} likely test files among {file_count} analyzed files.", evidence=[f"test_ratio={test_ratio:.2f}"]))
+        findings["testing"] = Dimension(score=round(test_score, 1), findings=test_findings)
 
-    docs_score = min(100.0, 55 + docs_ratio * 180)
-    docs_findings = [Finding(severity="info", title="Documentation signal", detail=f"Detected {docs_files} documentation-oriented files.", evidence=[f"docs_ratio={docs_ratio:.2f}"])]
-    findings["documentation"] = Dimension(score=round(docs_score, 1), findings=docs_findings)
+        docs_score = min(100.0, 55 + docs_ratio * 180)
+        docs_findings = [Finding(severity="info", title="Documentation signal", detail=f"Detected {docs_files} documentation-oriented files.", evidence=[f"docs_ratio={docs_ratio:.2f}"])]
+        findings["documentation"] = Dimension(score=round(docs_score, 1), findings=docs_findings)
 
-    config_score = min(100.0, 50 + config_ratio * 150)
-    findings["configuration"] = Dimension(score=round(config_score, 1), findings=[Finding(severity="info", title="Configuration inventory", detail=f"Detected {config_files} configuration/data definition files.")])
+        config_score = min(100.0, 50 + config_ratio * 150)
+        findings["configuration"] = Dimension(score=round(config_score, 1), findings=[Finding(severity="info", title="Configuration inventory", detail=f"Detected {config_files} configuration/data definition files.")])
 
-    size_score = 100.0 if total_lines == 0 else max(35.0, 100 - max(0, total_lines - 10_000) / 500)
-    maintainability_findings = [Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")]
-    if truncated:
-        maintainability_findings.append(Finding(severity="info", title="Analysis scan truncated", detail=f"The file scan stopped after the configured max_files limit of {max_files} valid files.", evidence=[f"max_files={max_files}"]))
-        size_score = max(0.0, size_score - 10.0)
-    findings["maintainability"] = Dimension(score=round(size_score, 1), findings=maintainability_findings)
+        size_score = 100.0 if total_lines == 0 else max(35.0, 100 - max(0, total_lines - 10_000) / 500)
+        maintainability_findings = [Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")]
+        if truncated:
+            maintainability_findings.append(Finding(severity="info", title="Analysis scan truncated", detail=f"The file scan stopped after the configured max_files limit of {max_files} valid files.", evidence=[f"max_files={max_files}"]))
+            size_score = max(0.0, size_score - 10.0)
+        findings["maintainability"] = Dimension(score=round(size_score, 1), findings=maintainability_findings)
+        overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
 
-    overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
     return Analysis(repository=str(root), files=file_count, languages=dict(languages), dependencies=[name for name, _ in dependencies.most_common(30)], dimensions=findings, overall_score=overall, generated_at=datetime.now(timezone.utc).isoformat())
