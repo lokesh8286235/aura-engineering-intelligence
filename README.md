@@ -1,65 +1,78 @@
 # AURA — Autonomous Engineering Intelligence
 
-> **A production-oriented engineering intelligence platform that turns a software repository into an explainable model of architecture, dependencies, and engineering health.**
+> **Architecture intelligence from source code: dependencies, structure, health, and evidence.**
 
-AURA is an independent systems project focused on a hard problem: giving engineers useful repository-level answers while keeping the analysis bounded, deterministic where possible, and grounded in repository evidence.
+AURA is an independent systems project focused on a narrower question than generic repository analysis:
+
+> **Can software architecture be reconstructed from repository evidence well enough to make engineering structure queryable?**
+
+The current implementation establishes the analysis foundation. More autonomous reasoning is deliberately roadmap work, not something this README pretends is already solved.
 
 ## The problem
 
-Large codebases contain architecture knowledge implicitly—in files, imports, tests, configuration, documentation, and conventions. AURA makes those signals queryable instead of relying on a model to guess the structure.
+Architecture knowledge is usually implicit in files, imports, tests, configuration, documentation, and conventions. AURA extracts those structural signals into an explainable model rather than asking a language model to guess the architecture.
+
+```text
+Source tree
+    │
+    ▼
+Bounded ingestion
+    │
+    ├── language inventory
+    ├── dependency signals
+    ├── test / documentation signals
+    └── configuration signals
+    │
+    ▼
+Architecture + health model
+    │
+    ▼
+Evidence-backed findings
+    │
+    └──────► optional provider / repository Q&A
+```
+
+## What is actually implemented
+
+- Multi-language repository inventory covering Python, TypeScript/JavaScript, Java, Go, and common configuration/documentation files.
+- Dependency extraction for Python imports and package/module signals.
+- Independent engineering-health dimensions for testing, documentation, configuration, and maintainability.
+- Explainable findings with evidence instead of an opaque aggregate score.
+- Bounded ingestion with configurable file-count and file-size limits.
+- Security-aware traversal that rejects symlinks and excludes common credential/configuration artifacts.
+- Typed FastAPI request/response contracts.
+- Next.js + TypeScript dashboard foundation.
+- Provider abstraction for model-assisted repository questions.
 
 ## Architecture
 
 ```text
-                         ┌─────────────────────────┐
-                         │       Next.js UI        │
-                         │ health / repository UX  │
-                         └────────────┬────────────┘
-                                      │ HTTP
-                         ┌────────────▼────────────┐
-                         │       FastAPI API       │
-                         │ analyze · health · ask  │
-                         └───────┬─────────┬───────┘
-                                 │         │
-                    ┌────────────▼───┐ ┌──▼────────────────┐
-                    │ Repository     │ │ Intelligence      │
-                    │ Analyzer       │ │ / provider layer  │
-                    └───────┬────────┘ └───────────────────┘
-                            │
-                    ┌───────▼────────┐
-                    │ Evidence model │
-                    │ + dimensions   │
-                    └────────────────┘
+                         ┌──────────────────────┐
+                         │      Next.js UI      │
+                         │ repository / health  │
+                         └──────────┬───────────┘
+                                    │ HTTP
+                         ┌──────────▼───────────┐
+                         │      FastAPI API     │
+                         │ analyze · ask · health│
+                         └───────┬───────┬───────┘
+                                 │       │
+                    ┌────────────▼──┐ ┌─▼────────────────┐
+                    │ Repository    │ │ Provider layer   │
+                    │ analyzer      │ │ optional AI      │
+                    └──────┬────────┘ └──────────────────┘
+                           │
+                    ┌──────▼────────┐
+                    │ Evidence +    │
+                    │ health model  │
+                    └───────────────┘
 ```
-
-## What is implemented
-
-- **Multi-language repository analysis** — Python, TypeScript/JavaScript, Java, Go, and common configuration/documentation files.
-- **Dependency extraction** — Python imports and package/module signals are collected into a bounded dependency inventory.
-- **Engineering health model** — testing, documentation, configuration, and maintainability dimensions are scored independently.
-- **Explainable findings** — dimensions contain findings and evidence rather than an opaque aggregate alone.
-- **Bounded ingestion** — configurable file-count and file-size limits protect analysis from pathological repositories.
-- **Security-aware traversal** — symlink traversal is rejected and common credential/configuration artifacts are excluded.
-- **Typed API** — FastAPI request/response models define the service contract.
-- **Provider isolation** — model-assisted answers sit behind a replaceable provider interface.
-- **Next.js + TypeScript dashboard foundation** for presenting repository intelligence.
-
-## Engineering decisions
-
-| Decision | Rationale |
-|---|---|
-| Deterministic repository analysis first | Establish a debuggable source of truth before model inference. |
-| Evidence attached to findings | Engineers can inspect why a score or risk exists. |
-| Bounded file ingestion | Prevent resource-heavy or pathological repository scans. |
-| Sensitive-file exclusion | Avoid feeding common credentials/config secrets into analysis. |
-| Provider abstraction | Keep AI integration replaceable and testable. |
-| Versioned API contracts | Make future ingestion and intelligence layers easier to evolve. |
 
 ## Security boundary
 
-The analyzer skips unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
+The analyzer filters unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
 
-This is deliberately defense-in-depth: input limits, path filtering, deterministic traversal, and provider isolation reduce the amount of untrusted repository data that can reach downstream reasoning.
+The intent is defense in depth: bounded inputs, path filtering, deterministic traversal, and provider isolation reduce the amount of untrusted repository data that can reach downstream reasoning.
 
 ## API
 
@@ -79,7 +92,7 @@ Returns service health and version information.
 
 ### `POST /v1/ask`
 
-Accepts an engineering question and can build repository context before passing it to the configured provider.
+Accepts an engineering question, builds repository context, and can pass that context to the configured provider.
 
 ## Quick start
 
@@ -90,7 +103,7 @@ cd apps/api
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload
 ```
 
 Open `http://localhost:8000/docs`.
@@ -109,25 +122,19 @@ npm run dev
 docker compose up --build
 ```
 
-## Engineering loop
+## Engineering principle
 
 ```text
-Repository
-   ↓
-Bounded ingestion
-   ↓
-Deterministic evidence
-   ↓
-Health / architecture signals
-   ↓
-Optional retrieval + model reasoning
-   ↓
-Answer with evidence
-   ↓
-Evaluate and improve
+Structure first
+      ↓
+Evidence second
+      ↓
+Reasoning third
+      ↓
+Automation last
 ```
 
-The core design principle is simple: **AI should explain engineering evidence, not replace it.**
+AI should explain repository evidence, not replace the source of truth.
 
 ## Roadmap
 
