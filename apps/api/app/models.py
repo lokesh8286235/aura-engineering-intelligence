@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 
 class AnalyzeRequest(BaseModel):
     repository: str = Field(min_length=1, description="Local repository path")
-    max_files: int = Field(default=500, ge=1, le=5000)
+    max_files: int = Field(default=500, ge=1, le=10_000)
     max_file_bytes: int = Field(default=512_000, ge=1_024, le=5_000_000)
 
 
