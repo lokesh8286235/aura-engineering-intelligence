@@ -28,8 +28,25 @@ SENSITIVE_FILENAMES = {
     "service-account.json",
     "service_account.json",
 }
+SENSITIVE_RELATIVE_PATHS = {
+    (".aws", "credentials"),
+    (".docker", "config.json"),
+    (".config", "gcloud", "application_default_credentials.json"),
+}
+SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
 MAX_FILE_BYTES = 5_000_000
+
+
+def _is_sensitive(path: Path) -> bool:
+    name = path.name.lower()
+    relative_parts = tuple(part.lower() for part in path.parts)
+    return (
+        name in SENSITIVE_FILENAMES
+        or name.startswith(".env.")
+        or path.suffix.lower() in SENSITIVE_SUFFIXES
+        or any(relative_parts[-len(candidate):] == candidate for candidate in SENSITIVE_RELATIVE_PATHS)
+    )
 
 
 def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
@@ -39,7 +56,7 @@ def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
-            if path.suffix.lower() not in SUPPORTED or path.is_symlink() or path.name.lower() in SENSITIVE_FILENAMES:
+            if path.suffix.lower() not in SUPPORTED or path.is_symlink() or _is_sensitive(path):
                 continue
             try:
                 text = _read_text(path, max_bytes)
