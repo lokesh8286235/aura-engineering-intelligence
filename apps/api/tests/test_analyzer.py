@@ -2,8 +2,10 @@ from datetime import datetime
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 from app.analyzer import analyze_repository
+from app.models import AnalyzeRequest
 
 
 def test_analyze_repository(tmp_path: Path) -> None:
@@ -124,6 +126,17 @@ def test_analyze_repository_rejects_excessive_file_limit(tmp_path: Path) -> None
 def test_analyze_repository_rejects_excessive_file_size(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="max_file_bytes must be less than or equal to 5000000"):
         analyze_repository(str(tmp_path), max_file_bytes=5_000_001)
+
+
+def test_analyze_request_allows_analyzer_file_limit(tmp_path: Path) -> None:
+    request = AnalyzeRequest(repository=str(tmp_path), max_files=10_000)
+
+    assert request.max_files == 10_000
+
+
+def test_analyze_request_rejects_file_limit_above_analyzer_ceiling(tmp_path: Path) -> None:
+    with pytest.raises(ValidationError):
+        AnalyzeRequest(repository=str(tmp_path), max_files=10_001)
 
 
 def test_file_that_grows_during_scan_is_excluded(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
