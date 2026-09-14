@@ -17,6 +17,10 @@ SENSITIVE_FILENAMES = {
     ".env.development",
     ".env.production",
     ".env.test",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+    ".git-credentials",
     "credentials.json",
     "credentials.yml",
     "credentials.yaml",
@@ -27,6 +31,10 @@ SENSITIVE_FILENAMES = {
     "secrets.toml",
     "service-account.json",
     "service_account.json",
+    "id_rsa",
+    "id_ed25519",
+    "id_ecdsa",
+    "id_dsa",
 }
 SENSITIVE_RELATIVE_PATHS = {
     (".aws", "credentials"),
