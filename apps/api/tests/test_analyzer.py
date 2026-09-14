@@ -240,6 +240,18 @@ def test_common_secret_manifests_are_not_analyzed(tmp_path: Path) -> None:
     assert "secret" not in result.dependencies
 
 
+def test_common_auth_and_private_key_files_are_not_analyzed(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
+    for name in (".netrc", ".npmrc", ".pypirc", ".git-credentials", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"):
+        (tmp_path / name).write_text("SECRET_TOKEN=should-not-be-scanned\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 1
+    assert result.languages == {"Python": 1}
+    assert "should-not-be-scanned" not in result.dependencies
+
+
 def test_truncated_scan_reduces_maintainability_score(tmp_path: Path) -> None:
     (tmp_path / "a.py").write_text("value = 1\n", encoding="utf-8")
     (tmp_path / "b.py").write_text("value = 2\n", encoding="utf-8")
@@ -268,3 +280,7 @@ def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path,
     def record_read(path: Path, max_bytes: int) -> str | None:
         calls.append(path)
         return original(path, max_bytes)
+
+    monkeypatch.setattr(analyzer, "_read_text", record_read)
+    analyze_repository(str(tmp_path), max_files=2)
+    assert calls == [tmp_path / "a.py", tmp_path / "b.py"]
