@@ -32,7 +32,14 @@ class RepositoryGraph:
                 self.edges.append(edge)
 
     def to_dict(self) -> dict:
+        """Return a stable representation for APIs, snapshots, and evaluation."""
         return {
-            "nodes": [node.__dict__ for node in self.nodes.values()],
-            "edges": [edge.__dict__ for edge in self.edges],
+            "nodes": [self.nodes[node_id].__dict__ for node_id in sorted(self.nodes)],
+            "edges": [
+                edge.__dict__
+                for edge in sorted(
+                    self.edges,
+                    key=lambda item: (item.source, item.target, item.relation),
+                )
+            ],
         }
