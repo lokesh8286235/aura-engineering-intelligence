@@ -10,6 +10,11 @@ SENSITIVE_FILENAMES = {
     ".env.development",
     ".env.production",
     ".env.test",
+    ".envrc",
+    ".netrc",
+    ".npmrc",
+    ".pypirc",
+    ".git-credentials",
     "credentials.json",
     "credentials.yml",
     "credentials.yaml",
@@ -20,6 +25,10 @@ SENSITIVE_FILENAMES = {
     "secrets.toml",
     "service-account.json",
     "service_account.json",
+    "id_rsa",
+    "id_ed25519",
+    "id_ecdsa",
+    "id_dsa",
 }
 SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
 SENSITIVE_RELATIVE_PATHS = {
@@ -27,7 +36,7 @@ SENSITIVE_RELATIVE_PATHS = {
     (".docker", "config.json"),
     (".config", "gcloud", "application_default_credentials.json"),
 }
-SUPPORTED = {".py", ".ts", ".tsx", ".js", ".jsx", ".java", ".go", ".md", ".yaml", ".yml", ".json"}
+SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".md", ".mdx", ".yaml", ".yml", ".json", ".toml"}
 
 
 def _is_sensitive(path: Path) -> bool:
