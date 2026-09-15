@@ -51,6 +51,11 @@ def _is_sensitive(path: Path) -> bool:
 
 
 def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 100_000) -> str:
+    if max_files < 1:
+        raise ValueError("max_files must be at least 1")
+    if max_file_bytes < 1:
+        raise ValueError("max_file_bytes must be at least 1")
+
     root = Path(repository).expanduser().resolve()
     if not root.is_dir():
         raise ValueError("repository must be an existing directory")
