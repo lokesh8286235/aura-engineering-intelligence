@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from .analyzer import analyze_repository
@@ -30,7 +30,9 @@ app.add_middleware(
 provider = LocalProvider()
 
 @app.get("/v1/health")
-def health() -> dict[str, str]:
+def health(response: Response) -> dict[str, str]:
+    """Report service health without allowing intermediaries to cache it."""
+    response.headers["Cache-Control"] = "no-store"
     return {"status": "ok", "service": "aura-api", "version": "0.2.0"}
 
 @app.post("/v1/analyze", response_model=Analysis)
