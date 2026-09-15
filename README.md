@@ -70,7 +70,7 @@ Evidence-backed findings
 
 ## Security boundary
 
-The analyzer filters unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
+The analyzer and repository-context builder filter unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
 
 The intent is defense in depth: bounded inputs, path filtering, deterministic traversal, and provider isolation reduce the amount of untrusted repository data that can reach downstream reasoning.
 
@@ -78,7 +78,7 @@ The intent is defense in depth: bounded inputs, path filtering, deterministic tr
 
 ### `GET /v1/health`
 
-Returns service health and version information.
+Returns service health and version information. Responses are marked `Cache-Control: no-store` so monitoring clients and intermediaries do not reuse stale health results.
 
 ### `POST /v1/analyze`
 
@@ -107,6 +107,13 @@ uvicorn app.main:app --reload
 ```
 
 Open `http://localhost:8000/docs`.
+
+For a deployed frontend, configure allowed browser origins with `AURA_CORS_ORIGINS` as a comma-separated list. It defaults to `http://localhost:3000` for local development.
+
+```bash
+export AURA_CORS_ORIGINS="https://app.example.com,https://staging.example.com"
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
 
 ### Web
 
