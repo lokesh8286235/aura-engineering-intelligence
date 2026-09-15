@@ -70,8 +70,8 @@ def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 1
             try:
                 if path.stat().st_size > max_file_bytes:
                     continue
-                text = path.read_text(encoding="utf-8", errors="ignore")
-            except OSError:
+                text = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError):
                 continue
             if "\x00" in text:
                 continue
