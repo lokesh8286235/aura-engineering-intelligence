@@ -52,3 +52,16 @@ def test_build_context_skips_binary_like_files(tmp_path: Path) -> None:
     assert "app.py" in context
     assert "binary.py" not in context
     assert "PRIVATE_BINARY_DATA" not in context
+
+
+def test_build_context_skips_metadata_dirs_case_insensitively(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("print('safe')", encoding="utf-8")
+    metadata = tmp_path / ".GIT"
+    metadata.mkdir()
+    (metadata / "config.py").write_text("SHOULD_NOT_BE_INGESTED = True", encoding="utf-8")
+
+    context = build_context(str(tmp_path))
+
+    assert "app.py" in context
+    assert "config.py" not in context
+    assert "SHOULD_NOT_BE_INGESTED" not in context
