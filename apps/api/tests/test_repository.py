@@ -41,3 +41,14 @@ def test_build_context_does_not_follow_symlinked_directories(tmp_path: Path) -> 
     assert "app.py" in context
     assert "leaked.py" not in context
     assert "do-not-ingest" not in context
+
+
+def test_build_context_skips_binary_like_files(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("print('safe')", encoding="utf-8")
+    (tmp_path / "binary.py").write_bytes(b"print('prefix')\x00PRIVATE_BINARY_DATA")
+
+    context = build_context(str(tmp_path))
+
+    assert "app.py" in context
+    assert "binary.py" not in context
+    assert "PRIVATE_BINARY_DATA" not in context
