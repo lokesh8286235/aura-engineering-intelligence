@@ -17,3 +17,20 @@ def test_build_context_excludes_sensitive_files(tmp_path: Path) -> None:
     assert "API_KEY=secret" not in context
     assert "PRIVATE KEY" not in context
     assert "aws_secret=secret" not in context
+
+
+def test_build_context_does_not_follow_symlinked_directories(tmp_path: Path) -> None:
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "leaked.py").write_text("LEAKED_SECRET = 'do-not-ingest'", encoding="utf-8")
+
+    repository = tmp_path / "repository"
+    repository.mkdir()
+    (repository / "app.py").write_text("print('safe')", encoding="utf-8")
+    (repository / "linked").symlink_to(outside, target_is_directory=True)
+
+    context = build_context(str(repository))
+
+    assert "app.py" in context
+    assert "leaked.py" not in context
+    assert "do-not-ingest" not in context
