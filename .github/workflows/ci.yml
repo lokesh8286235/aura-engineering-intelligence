@@ -27,8 +27,8 @@ jobs:
           cache-dependency-path: apps/api/requirements.txt
       - run: pip install -r requirements.txt
       - run: pip check
-      - run: PYTHONPATH=. pytest -q
       - run: python -m compileall -q app
+      - run: PYTHONPATH=. pytest -q
 
   web:
     runs-on: ubuntu-latest
