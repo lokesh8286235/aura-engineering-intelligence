@@ -62,7 +62,7 @@ def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 1
     chunks: list[str] = []
     count = 0
     for current, dirs, files in os.walk(root, followlinks=False):
-        dirs[:] = [d for d in dirs if d not in SKIP and not (Path(current) / d).is_symlink()]
+        dirs[:] = [d for d in dirs if d.lower() not in SKIP and not (Path(current) / d).is_symlink()]
         for name in sorted(files):
             path = Path(current) / name
             if path.is_symlink() or path.suffix.lower() not in SUPPORTED or _is_sensitive(path):
