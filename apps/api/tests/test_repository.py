@@ -76,3 +76,14 @@ def test_build_context_skips_invalid_utf8_files(tmp_path: Path) -> None:
     assert "app.py" in context
     assert "invalid.py" not in context
     assert "INVALID_UTF8_DATA" not in context
+
+
+def test_build_context_respects_byte_limit_with_multibyte_text(tmp_path: Path) -> None:
+    content = "print('😀' * 100)"
+    (tmp_path / "unicode.py").write_text(content, encoding="utf-8")
+
+    context = build_context(str(tmp_path), max_file_bytes=12)
+    body = context.split("\n", 1)[1]
+
+    assert len(body.encode("utf-8")) <= 12
+    assert body == "print('😀'"
