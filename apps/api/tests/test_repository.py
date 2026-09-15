@@ -6,6 +6,10 @@ from app.repository import build_context
 def test_build_context_excludes_sensitive_files(tmp_path: Path) -> None:
     (tmp_path / "app.py").write_text("print('safe')", encoding="utf-8")
     (tmp_path / ".env.staging").write_text("API_KEY=secret", encoding="utf-8")
+    (tmp_path / ".envrc").write_text("export TOKEN=secret", encoding="utf-8")
+    (tmp_path / ".npmrc").write_text("//registry.example/:_authToken=secret", encoding="utf-8")
+    (tmp_path / ".git-credentials").write_text("https://user:secret@example.com", encoding="utf-8")
+    (tmp_path / "id_rsa").write_text("PRIVATE KEY", encoding="utf-8")
     (tmp_path / "private.pem").write_text("PRIVATE KEY", encoding="utf-8")
     aws = tmp_path / ".aws"
     aws.mkdir()
@@ -15,6 +19,9 @@ def test_build_context_excludes_sensitive_files(tmp_path: Path) -> None:
 
     assert "app.py" in context
     assert "API_KEY=secret" not in context
+    assert "export TOKEN=secret" not in context
+    assert "_authToken=secret" not in context
+    assert "user:secret@example.com" not in context
     assert "PRIVATE KEY" not in context
     assert "aws_secret=secret" not in context
 
