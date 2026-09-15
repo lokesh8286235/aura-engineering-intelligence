@@ -3,32 +3,19 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-SKIP = {".git", "node_modules", ".venv", "venv", "dist", "build", "target", "__pycache__"}
+SKIP = {
+    ".git", ".next", ".turbo", ".vercel", ".cache", ".parcel-cache",
+    "node_modules", ".terraform", ".gradle", "dist", "build", "target",
+    ".venv", "venv", "__pycache__", ".pytest_cache", ".mypy_cache",
+    ".ruff_cache", ".tox", ".nox", "coverage", "htmlcov",
+}
 SENSITIVE_FILENAMES = {
-    ".env",
-    ".env.local",
-    ".env.development",
-    ".env.production",
-    ".env.test",
-    ".envrc",
-    ".netrc",
-    ".npmrc",
-    ".pypirc",
-    ".git-credentials",
-    "credentials.json",
-    "credentials.yml",
-    "credentials.yaml",
-    "credentials.toml",
-    "secrets.json",
-    "secrets.yml",
-    "secrets.yaml",
-    "secrets.toml",
-    "service-account.json",
-    "service_account.json",
-    "id_rsa",
-    "id_ed25519",
-    "id_ecdsa",
-    "id_dsa",
+    ".env", ".env.local", ".env.development", ".env.production", ".env.test",
+    ".envrc", ".netrc", ".npmrc", ".pypirc", ".git-credentials",
+    "credentials.json", "credentials.yml", "credentials.yaml", "credentials.toml",
+    "secrets.json", "secrets.yml", "secrets.yaml", "secrets.toml",
+    "service-account.json", "service_account.json", "id_rsa", "id_ed25519",
+    "id_ecdsa", "id_dsa",
 }
 SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
 SENSITIVE_RELATIVE_PATHS = {
