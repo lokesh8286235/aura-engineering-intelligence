@@ -50,6 +50,14 @@ def _is_sensitive(path: Path) -> bool:
     )
 
 
+def _truncate_utf8(text: str, max_bytes: int) -> str:
+    """Limit context by UTF-8 byte size without splitting a multibyte character."""
+    data = text.encode("utf-8")
+    if len(data) <= max_bytes:
+        return text
+    return data[:max_bytes].decode("utf-8", errors="ignore")
+
+
 def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 100_000) -> str:
     if max_files < 1:
         raise ValueError("max_files must be at least 1")
@@ -76,7 +84,7 @@ def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 1
             if "\x00" in text:
                 continue
             relative = path.relative_to(root).as_posix()
-            chunks.append(f"FILE: {relative}\n{text[:max_file_bytes]}")
+            chunks.append(f"FILE: {relative}\n{_truncate_utf8(text, max_file_bytes)}")
             count += 1
             if count >= max_files:
                 return "\n\n---\n\n".join(chunks)
