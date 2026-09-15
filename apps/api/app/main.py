@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,7 +11,22 @@ from .providers import LocalProvider
 from .repository import build_context
 
 app = FastAPI(title="AURA Engineering Intelligence API", version="0.2.0")
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:3000"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+
+def _cors_origins() -> list[str]:
+    """Return configured browser origins, with a local-development default."""
+    raw_origins = os.getenv("AURA_CORS_ORIGINS", "http://localhost:3000")
+    origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+    return origins or ["http://localhost:3000"]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins(),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 provider = LocalProvider()
 
 @app.get("/v1/health")
