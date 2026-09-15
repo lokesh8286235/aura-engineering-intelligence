@@ -68,6 +68,8 @@ def build_context(repository: str, max_files: int = 200, max_file_bytes: int = 1
                 text = path.read_text(encoding="utf-8", errors="ignore")
             except OSError:
                 continue
+            if "\x00" in text:
+                continue
             relative = path.relative_to(root).as_posix()
             chunks.append(f"FILE: {relative}\n{text[:max_file_bytes]}")
             count += 1
