@@ -65,3 +65,14 @@ def test_build_context_skips_metadata_dirs_case_insensitively(tmp_path: Path) ->
     assert "app.py" in context
     assert "config.py" not in context
     assert "SHOULD_NOT_BE_INGESTED" not in context
+
+
+def test_build_context_skips_invalid_utf8_files(tmp_path: Path) -> None:
+    (tmp_path / "app.py").write_text("print('safe')", encoding="utf-8")
+    (tmp_path / "invalid.py").write_bytes(b"print('prefix')\xffINVALID_UTF8_DATA")
+
+    context = build_context(str(tmp_path))
+
+    assert "app.py" in context
+    assert "invalid.py" not in context
+    assert "INVALID_UTF8_DATA" not in context
