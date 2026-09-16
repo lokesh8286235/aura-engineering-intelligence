@@ -46,6 +46,16 @@ def test_analyze_request_strips_repository_path():
         AnalyzeRequest(repository="   ")
 
 
+def test_ask_request_normalizes_optional_repository_path():
+    request = AskRequest(question="What changed?", repository="  /workspace/project  ")
+
+    assert request.repository == "/workspace/project"
+    assert AskRequest(question="What changed?").repository is None
+
+    with pytest.raises(ValidationError, match="repository must not be blank"):
+        AskRequest(question="What changed?", repository="   ")
+
+
 def test_ask_request_enforces_question_length():
     request = AskRequest(question="What changed?")
 
