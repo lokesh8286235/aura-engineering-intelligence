@@ -37,6 +37,15 @@ def test_analyze_request_enforces_file_limits():
         AnalyzeRequest(repository="/workspace", max_file_bytes=512)
 
 
+def test_analyze_request_strips_repository_path():
+    request = AnalyzeRequest(repository="  /workspace/project  ")
+
+    assert request.repository == "/workspace/project"
+
+    with pytest.raises(ValidationError, match="repository must not be blank"):
+        AnalyzeRequest(repository="   ")
+
+
 def test_ask_request_enforces_question_length():
     request = AskRequest(question="What changed?")
 
