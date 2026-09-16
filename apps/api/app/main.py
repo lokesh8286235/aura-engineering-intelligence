@@ -14,9 +14,11 @@ app = FastAPI(title="AURA Engineering Intelligence API", version="0.2.0")
 
 
 def _cors_origins() -> list[str]:
-    """Return configured browser origins, with a local-development default."""
+    """Return configured browser origins, rejecting wildcard credentials access."""
     raw_origins = os.getenv("AURA_CORS_ORIGINS", "http://localhost:3000")
     origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+    if "*" in origins:
+        raise ValueError("AURA_CORS_ORIGINS must list specific origins; '*' is not allowed with credentials")
     return origins or ["http://localhost:3000"]
 
 
