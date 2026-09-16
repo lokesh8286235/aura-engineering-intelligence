@@ -64,6 +64,18 @@ def test_ask_request_normalizes_optional_repository_path():
         AskRequest(question="What changed?", repository="   ")
 
 
+def test_ask_request_normalizes_and_rejects_blank_questions():
+    request = AskRequest(question="  What changed?  ")
+
+    assert request.question == "What changed?"
+
+    with pytest.raises(ValidationError, match="question must contain at least 2 non-whitespace characters"):
+        AskRequest(question="   ")
+
+    with pytest.raises(ValidationError, match="question must contain at least 2 non-whitespace characters"):
+        AskRequest(question=" x ")
+
+
 def test_ask_request_enforces_question_length():
     request = AskRequest(question="What changed?")
 
