@@ -108,7 +108,7 @@ uvicorn app.main:app --reload
 
 Open `http://localhost:8000/docs`.
 
-For a deployed frontend, configure allowed browser origins with `AURA_CORS_ORIGINS` as a comma-separated list. It defaults to `http://localhost:3000` for local development.
+For a deployed frontend, configure allowed browser origins with `AURA_CORS_ORIGINS` as a comma-separated list. It defaults to `http://localhost:3000` for local development. Because the API enables credentialed CORS, configure **specific origins rather than `*`**.
 
 ```bash
 export AURA_CORS_ORIGINS="https://app.example.com,https://staging.example.com"
