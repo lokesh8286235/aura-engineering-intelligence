@@ -28,6 +28,13 @@ class Dimension(BaseModel):
     score: float = Field(ge=0, le=100)
     findings: list[Finding] = Field(default_factory=list)
 
+    @field_validator("score", mode="before")
+    @classmethod
+    def reject_boolean_score(cls, value: object) -> object:
+        if isinstance(value, bool):
+            raise ValueError("score must be a number, not a boolean")
+        return value
+
 
 class Analysis(BaseModel):
     repository: str = Field(min_length=1)
@@ -44,6 +51,13 @@ class Analysis(BaseModel):
         value = value.strip()
         if not value:
             raise ValueError("repository must not be blank")
+        return value
+
+    @field_validator("overall_score", mode="before")
+    @classmethod
+    def reject_boolean_overall_score(cls, value: object) -> object:
+        if isinstance(value, bool):
+            raise ValueError("overall_score must be a number, not a boolean")
         return value
 
 
