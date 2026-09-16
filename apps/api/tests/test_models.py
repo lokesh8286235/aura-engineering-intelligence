@@ -112,8 +112,8 @@ def test_analysis_scores_and_counts_stay_within_contract():
             repository="/workspace",
             files=-1,
             languages={},
-            dependencies=[],
             dimensions={},
+            dependencies=[],
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
@@ -123,8 +123,21 @@ def test_analysis_scores_and_counts_stay_within_contract():
             repository="/workspace",
             files=1,
             languages={},
+            dimensions={},
+            dependencies=[],
+            overall_score=101,
+            generated_at="2026-09-09T00:00:00Z",
+        )
+
+
+def test_analysis_rejects_boolean_file_count():
+    with pytest.raises(ValidationError):
+        Analysis(
+            repository="/workspace",
+            files=True,
+            languages={},
             dependencies=[],
             dimensions={},
-            overall_score=101,
+            overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
