@@ -37,6 +37,14 @@ def test_analyze_request_enforces_file_limits():
         AnalyzeRequest(repository="/workspace", max_file_bytes=512)
 
 
+def test_analyze_request_rejects_boolean_resource_limits():
+    with pytest.raises(ValidationError):
+        AnalyzeRequest(repository="/workspace", max_files=True)
+
+    with pytest.raises(ValidationError):
+        AnalyzeRequest(repository="/workspace", max_file_bytes=False)
+
+
 def test_analyze_request_strips_repository_path():
     request = AnalyzeRequest(repository="  /workspace/project  ")
 
