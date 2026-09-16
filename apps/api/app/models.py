@@ -31,7 +31,7 @@ class Dimension(BaseModel):
 
 class Analysis(BaseModel):
     repository: str = Field(min_length=1)
-    files: int = Field(ge=0)
+    files: int = Field(ge=0, strict=True)
     languages: dict[str, int]
     dependencies: list[str]
     dimensions: dict[str, Dimension]
