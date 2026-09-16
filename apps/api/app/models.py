@@ -38,6 +38,14 @@ class Analysis(BaseModel):
     overall_score: float = Field(ge=0, le=100)
     generated_at: str = Field(min_length=1)
 
+    @field_validator("repository")
+    @classmethod
+    def validate_repository(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("repository must not be blank")
+        return value
+
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=4_000)
