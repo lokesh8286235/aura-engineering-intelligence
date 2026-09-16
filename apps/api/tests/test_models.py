@@ -14,6 +14,34 @@ def test_finding_evidence_lists_are_not_shared():
     assert second.evidence == []
 
 
+def test_finding_normalizes_text_and_evidence():
+    finding = Finding(
+        severity="  medium  ",
+        title="  Missing test  ",
+        detail="  Add coverage  ",
+        evidence=["  app.py:10  ", "tests/test_app.py:20"],
+    )
+
+    assert finding.severity == "medium"
+    assert finding.title == "Missing test"
+    assert finding.detail == "Add coverage"
+    assert finding.evidence == ["app.py:10", "tests/test_app.py:20"]
+
+
+def test_finding_rejects_blank_text_and_evidence():
+    with pytest.raises(ValidationError, match="finding text fields must not be blank"):
+        Finding(severity="   ", title="Title", detail="Detail")
+
+    with pytest.raises(ValidationError, match="finding text fields must not be blank"):
+        Finding(severity="low", title="   ", detail="Detail")
+
+    with pytest.raises(ValidationError, match="finding text fields must not be blank"):
+        Finding(severity="low", title="Title", detail="   ")
+
+    with pytest.raises(ValidationError, match="finding evidence must not contain blank values"):
+        Finding(severity="low", title="Title", detail="Detail", evidence=["   "])
+
+
 def test_dimension_findings_lists_are_not_shared():
     first = Dimension(score=90)
     second = Dimension(score=80)
@@ -168,6 +196,7 @@ def test_analysis_rejects_boolean_file_count():
             languages={},
             dependencies=[],
             dimensions={},
+            dependencies=[],
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
