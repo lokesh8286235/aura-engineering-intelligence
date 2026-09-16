@@ -196,7 +196,6 @@ def test_analysis_rejects_boolean_file_count():
             languages={},
             dependencies=[],
             dimensions={},
-            dependencies=[],
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
