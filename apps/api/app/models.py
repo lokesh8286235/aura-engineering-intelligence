@@ -43,6 +43,16 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=4_000)
     repository: str | None = None
 
+    @field_validator("repository")
+    @classmethod
+    def validate_repository(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        value = value.strip()
+        if not value:
+            raise ValueError("repository must not be blank")
+        return value
+
 
 class AskResponse(BaseModel):
     answer: str
