@@ -86,6 +86,31 @@ def test_ask_request_enforces_question_length():
         AskRequest(question="x")
 
 
+def test_analysis_normalizes_repository_path():
+    analysis = Analysis(
+        repository="  /workspace/project  ",
+        files=0,
+        languages={},
+        dependencies=[],
+        dimensions={},
+        overall_score=0,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    assert analysis.repository == "/workspace/project"
+
+    with pytest.raises(ValidationError, match="repository must not be blank"):
+        Analysis(
+            repository="   ",
+            files=0,
+            languages={},
+            dependencies=[],
+            dimensions={},
+            overall_score=0,
+            generated_at="2026-09-09T00:00:00Z",
+        )
+
+
 def test_analysis_scores_and_counts_stay_within_contract():
     dimension = Dimension(score=100)
     analysis = Analysis(
