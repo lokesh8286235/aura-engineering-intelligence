@@ -24,6 +24,11 @@ def test_dimension_findings_lists_are_not_shared():
     assert second.findings == []
 
 
+def test_dimension_rejects_boolean_score():
+    with pytest.raises(ValidationError, match="score must be a number, not a boolean"):
+        Dimension(score=True)
+
+
 def test_analyze_request_enforces_file_limits():
     request = AnalyzeRequest(repository="/workspace", max_files=10, max_file_bytes=2048)
 
@@ -164,5 +169,18 @@ def test_analysis_rejects_boolean_file_count():
             dependencies=[],
             dimensions={},
             overall_score=50,
+            generated_at="2026-09-09T00:00:00Z",
+        )
+
+
+def test_analysis_rejects_boolean_overall_score():
+    with pytest.raises(ValidationError, match="overall_score must be a number, not a boolean"):
+        Analysis(
+            repository="/workspace",
+            files=0,
+            languages={},
+            dependencies=[],
+            dimensions={},
+            overall_score=True,
             generated_at="2026-09-09T00:00:00Z",
         )
