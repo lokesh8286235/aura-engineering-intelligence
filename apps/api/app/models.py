@@ -43,6 +43,14 @@ class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=4_000)
     repository: str | None = None
 
+    @field_validator("question")
+    @classmethod
+    def validate_question(cls, value: str) -> str:
+        value = value.strip()
+        if len(value) < 2:
+            raise ValueError("question must contain at least 2 non-whitespace characters")
+        return value
+
     @field_validator("repository")
     @classmethod
     def validate_repository(cls, value: str | None) -> str | None:
