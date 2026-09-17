@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from app.analyzer import analyze_repository
 from app.models import Analysis, AnalyzeRequest, AskRequest, AskResponse, Dimension, Finding
 
 
