@@ -34,7 +34,8 @@ Evidence-backed findings
 
 ## What is actually implemented
 
-- Multi-language repository inventory covering Python, TypeScript/JavaScript, Java, Go, and common configuration/documentation files.
+- Multi-language repository inventory covering Python, TypeScript/JavaScript, Java, Go, GraphQL, HTML/CSS, and common configuration/documentation files.
+- Dockerfile detection, including `Dockerfile.*` variants, even though they have no conventional file extension.
 - Dependency extraction for Python imports and package/module signals.
 - Independent engineering-health dimensions for testing, documentation, configuration, and maintainability.
 - Explainable findings with evidence instead of an opaque aggregate score.
