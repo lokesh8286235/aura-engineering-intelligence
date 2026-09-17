@@ -7,14 +7,12 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .models import Analysis, Dimension, Finding
-
-SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
+SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".html", ".css", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
 SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", ".cache", ".parcel-cache", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".nox", "coverage", "htmlcov", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {".env", ".env.local", ".env.development", ".env.production", ".env.test", ".netrc", ".npmrc", ".pypirc", ".git-credentials", "credentials.json", "credentials.yml", "credentials.yaml", "credentials.toml", "secrets.json", "secrets.yml", "secrets.yaml", "secrets.toml", "service-account.json", "service_account.json", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"}
 SENSITIVE_RELATIVE_PATHS = {(".aws", "credentials"), (".docker", "config.json"), (".config", "gcloud", "application_default_credentials.json")}
 SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
-LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
+LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".html": "HTML", ".css": "CSS", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
 MAX_FILE_BYTES = 5_000_000
 
 
