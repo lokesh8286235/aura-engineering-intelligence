@@ -217,6 +217,7 @@ def test_analysis_rejects_boolean_file_count():
             repository="/workspace",
             files=True,
             languages={},
+            dependencies=[],
             dimensions={},
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
@@ -229,6 +230,7 @@ def test_analysis_rejects_boolean_overall_score():
             repository="/workspace",
             files=0,
             languages={},
+            dependencies=[],
             dimensions={},
             overall_score=True,
             generated_at="2026-09-09T00:00:00Z",
@@ -312,3 +314,11 @@ def test_analysis_rejects_blank_or_duplicate_dependencies():
 
     with pytest.raises(ValidationError, match="dependencies must be unique after trimming"):
         Analysis(**base, dependencies=["fastapi", " fastapi "])
+
+
+def test_analyzer_rejects_boolean_resource_limits(tmp_path: Path):
+    with pytest.raises(ValueError, match="max_files must be between 1 and 10000"):
+        analyze_repository(str(tmp_path), max_files=True)
+
+    with pytest.raises(ValueError, match="max_file_bytes must be between 1 and 5000000"):
+        analyze_repository(str(tmp_path), max_file_bytes=False)

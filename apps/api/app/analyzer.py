@@ -121,14 +121,10 @@ def _read_text(path: Path, max_bytes: int) -> str | None:
 
 
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
-    if max_files <= 0:
-        raise ValueError("max_files must be greater than zero")
-    if max_files > 10_000:
-        raise ValueError("max_files must be less than or equal to 10000")
-    if max_file_bytes <= 0:
-        raise ValueError("max_file_bytes must be greater than zero")
-    if max_file_bytes > MAX_FILE_BYTES:
-        raise ValueError(f"max_file_bytes must be less than or equal to {MAX_FILE_BYTES}")
+    if type(max_files) is not int or not 1 <= max_files <= 10_000:
+        raise ValueError("max_files must be between 1 and 10000")
+    if type(max_file_bytes) is not int or not 1 <= max_file_bytes <= MAX_FILE_BYTES:
+        raise ValueError(f"max_file_bytes must be between 1 and {MAX_FILE_BYTES}")
 
     root = Path(repository).expanduser().resolve()
     if not root.exists() or not root.is_dir():
