@@ -12,7 +12,6 @@ SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", ".cache", ".parcel-cache
 SENSITIVE_FILENAMES = {".env", ".env.local", ".env.development", ".env.production", ".env.test", ".netrc", ".npmrc", ".pypirc", ".git-credentials", "credentials.json", "credentials.yml", "credentials.yaml", "credentials.toml", "secrets.json", "secrets.yml", "secrets.yaml", "secrets.toml", "service-account.json", "service_account.json", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"}
 SENSITIVE_RELATIVE_PATHS = {(".aws", "credentials"), (".docker", "config.json"), (".config", "gcloud", "application_default_credentials.json")}
 SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
-LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".graphql": "GraphQL", ".gql": "GraphQL", ".html": "HTML", ".htm": "HTML", ".css": "CSS", ".scss": "CSS", ".sass": "CSS", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
 MAX_FILE_BYTES = 5_000_000
 
 
@@ -29,7 +28,7 @@ def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
-            if path.suffix.lower() not in SUPPORTED or path.is_symlink() or _is_sensitive(path):
+            if (path.suffix.lower() not in SUPPORTED and path.name.lower() != "dockerfile" and not path.name.lower().startswith("dockerfile.")) or path.is_symlink() or _is_sensitive(path):
                 continue
             try:
                 text = _read_text(path, max_bytes)
@@ -94,7 +93,8 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     empty_source_files: list[str] = []
     for path, text in paths:
         ext = path.suffix.lower()
-        languages[LANGUAGES[ext]] += 1
+        kind = "Dockerfile" if path.name.lower() == "dockerfile" or path.name.lower().startswith("dockerfile.") else LANGUAGES[ext]
+        languages[kind] += 1
         relative = path.relative_to(root).as_posix()
         lower = relative.lower()
         if _is_test_file(path.relative_to(root)):
