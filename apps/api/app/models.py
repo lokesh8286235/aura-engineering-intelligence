@@ -69,6 +69,21 @@ class Analysis(BaseModel):
             raise ValueError("repository must not be blank")
         return value
 
+    @field_validator("languages")
+    @classmethod
+    def validate_languages(cls, value: dict[str, int]) -> dict[str, int]:
+        normalized: dict[str, int] = {}
+        for language, count in value.items():
+            language = language.strip()
+            if not language:
+                raise ValueError("language names must not be blank")
+            if language in normalized:
+                raise ValueError("language names must be unique after trimming")
+            if type(count) is not int or count < 0:
+                raise ValueError("language counts must be non-negative integers")
+            normalized[language] = count
+        return normalized
+
     @field_validator("overall_score", mode="before")
     @classmethod
     def reject_boolean_overall_score(cls, value: object) -> object:
