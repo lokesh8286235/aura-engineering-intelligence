@@ -28,6 +28,17 @@ def test_frontend_markup_and_styles_are_counted(tmp_path: Path) -> None:
     assert result.languages == {"HTML": 1, "CSS": 1}
 
 
+def test_empty_frontend_sources_are_reported(tmp_path: Path) -> None:
+    (tmp_path / "index.html").write_text(" \n\t\n", encoding="utf-8")
+    (tmp_path / "app.scss").write_text("", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    maintainability = result.dimensions["maintainability"]
+    finding = next(f for f in maintainability.findings if f.title == "Empty source files detected")
+    assert finding.evidence == ["app.scss", "index.html"]
+
+
 def test_generated_at_is_utc_iso8601(tmp_path: Path) -> None:
     result = analyze_repository(str(tmp_path))
 
