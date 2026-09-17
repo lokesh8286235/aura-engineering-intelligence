@@ -260,3 +260,34 @@ def test_analysis_rejects_duplicate_normalized_language_names():
 
     with pytest.raises(ValidationError, match="language names must be unique after trimming"):
         Analysis(**base, languages={"Python": 10, " Python ": 5})
+
+
+def test_analysis_normalizes_dependencies():
+    analysis = Analysis(
+        repository="/workspace",
+        files=1,
+        languages={},
+        dependencies=["  fastapi  ", "pydantic"],
+        dimensions={},
+        overall_score=100,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    assert analysis.dependencies == ["fastapi", "pydantic"]
+
+
+def test_analysis_rejects_blank_or_duplicate_dependencies():
+    base = dict(
+        repository="/workspace",
+        files=1,
+        languages={},
+        dimensions={},
+        overall_score=100,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    with pytest.raises(ValidationError, match="dependencies must not contain blank values"):
+        Analysis(**base, dependencies=["fastapi", "   "])
+
+    with pytest.raises(ValidationError, match="dependencies must be unique after trimming"):
+        Analysis(**base, dependencies=["fastapi", " fastapi "])
