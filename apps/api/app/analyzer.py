@@ -11,36 +11,8 @@ from .models import Analysis, Dimension, Finding
 
 SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
 SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", ".cache", ".parcel-cache", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".nox", "coverage", "htmlcov", "dist", "build", "target", "__pycache__"}
-SENSITIVE_FILENAMES = {
-    ".env",
-    ".env.local",
-    ".env.development",
-    ".env.production",
-    ".env.test",
-    ".netrc",
-    ".npmrc",
-    ".pypirc",
-    ".git-credentials",
-    "credentials.json",
-    "credentials.yml",
-    "credentials.yaml",
-    "credentials.toml",
-    "secrets.json",
-    "secrets.yml",
-    "secrets.yaml",
-    "secrets.toml",
-    "service-account.json",
-    "service_account.json",
-    "id_rsa",
-    "id_ed25519",
-    "id_ecdsa",
-    "id_dsa",
-}
-SENSITIVE_RELATIVE_PATHS = {
-    (".aws", "credentials"),
-    (".docker", "config.json"),
-    (".config", "gcloud", "application_default_credentials.json"),
-}
+SENSITIVE_FILENAMES = {".env", ".env.local", ".env.development", ".env.production", ".env.test", ".netrc", ".npmrc", ".pypirc", ".git-credentials", "credentials.json", "credentials.yml", "credentials.yaml", "credentials.toml", "secrets.json", "secrets.yml", "secrets.yaml", "secrets.toml", "service-account.json", "service_account.json", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"}
+SENSITIVE_RELATIVE_PATHS = {(".aws", "credentials"), (".docker", "config.json"), (".config", "gcloud", "application_default_credentials.json")}
 SENSITIVE_SUFFIXES = {".pem", ".key", ".p12", ".pfx"}
 LANGUAGES = {".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript", ".java": "Java", ".go": "Go", ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown"}
 MAX_FILE_BYTES = 5_000_000
@@ -49,12 +21,7 @@ MAX_FILE_BYTES = 5_000_000
 def _is_sensitive(path: Path) -> bool:
     name = path.name.lower()
     relative_parts = tuple(part.lower() for part in path.parts)
-    return (
-        name in SENSITIVE_FILENAMES
-        or name.startswith(".env.")
-        or path.suffix.lower() in SENSITIVE_SUFFIXES
-        or any(relative_parts[-len(candidate):] == candidate for candidate in SENSITIVE_RELATIVE_PATHS)
-    )
+    return (name in SENSITIVE_FILENAMES or name.startswith(".env.") or path.suffix.lower() in SENSITIVE_SUFFIXES or any(relative_parts[-len(candidate):] == candidate for candidate in SENSITIVE_RELATIVE_PATHS))
 
 
 def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
@@ -82,16 +49,7 @@ def _is_test_file(path: Path) -> bool:
     """Identify conventional test/spec files without substring false positives."""
     parts = [part.lower() for part in path.parts]
     stem = path.stem.lower()
-    return (
-        any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts)
-        or stem in {"test", "spec"}
-        or stem.startswith("test_")
-        or stem.endswith("_test")
-        or stem.startswith("spec_")
-        or stem.endswith("_spec")
-        or stem.endswith(".test")
-        or stem.endswith(".spec")
-    )
+    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or stem in {"test", "spec"} or stem.startswith("test_") or stem.endswith("_test") or stem.startswith("spec_") or stem.endswith("_spec") or stem.endswith(".test") or stem.endswith(".spec"))
 
 
 def _python_imports(text: str) -> list[str]:
@@ -125,11 +83,9 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         raise ValueError("max_files must be between 1 and 10000")
     if type(max_file_bytes) is not int or not 1 <= max_file_bytes <= MAX_FILE_BYTES:
         raise ValueError(f"max_file_bytes must be between 1 and {MAX_FILE_BYTES}")
-
     root = Path(repository).expanduser().resolve()
     if not root.exists() or not root.is_dir():
         raise ValueError("repository must be an existing directory")
-
     paths, truncated = _files(root, max_files, max_file_bytes)
     languages = Counter()
     dependencies: Counter[str] = Counter()
@@ -137,7 +93,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     test_files = 0
     docs_files = 0
     config_files = 0
-
+    empty_source_files: list[str] = []
     for path, text in paths:
         ext = path.suffix.lower()
         languages[LANGUAGES[ext]] += 1
@@ -150,26 +106,21 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         if ext in {".json", ".yaml", ".yml", ".toml"}:
             config_files += 1
         total_lines += len(text.splitlines())
+        if ext in {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go"} and not text.strip():
+            empty_source_files.append(relative)
         if ext == ".py":
             dependencies.update(_python_imports(text))
         elif path.name.lower() in {"package.json", "pyproject.toml", "go.mod"}:
             for token in text.replace('"', " ").replace("'", " ").split():
                 if "/" in token and len(token) < 120:
                     dependencies[token.strip(",;:[]")]+=1
-
     file_count = len(paths)
     test_ratio = test_files / max(file_count, 1)
     docs_ratio = docs_files / max(file_count, 1)
     config_ratio = config_files / max(file_count, 1)
     findings: dict[str, Dimension] = {}
-
     if file_count == 0:
-        empty_finding = Finding(
-            severity="high",
-            title="No analyzable files detected",
-            detail="AURA could not analyze any supported, valid text files in the repository. Quality scores are therefore set to zero rather than implying evidence that was not observed.",
-            evidence=["files=0"],
-        )
+        empty_finding = Finding(severity="high", title="No analyzable files detected", detail="AURA could not analyze any supported, valid text files in the repository. Quality scores are therefore set to zero rather than implying evidence that was not observed.", evidence=["files=0"])
         findings["testing"] = Dimension(score=0.0, findings=[empty_finding])
         findings["documentation"] = Dimension(score=0.0, findings=[empty_finding])
         findings["configuration"] = Dimension(score=0.0, findings=[empty_finding])
@@ -183,20 +134,19 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         else:
             test_findings.append(Finding(severity="info", title="Test surface detected", detail=f"Detected {test_files} likely test files among {file_count} analyzed files.", evidence=[f"test_ratio={test_ratio:.2f}"]))
         findings["testing"] = Dimension(score=round(test_score, 1), findings=test_findings)
-
         docs_score = min(100.0, 55 + docs_ratio * 180)
         docs_findings = [Finding(severity="info", title="Documentation signal", detail=f"Detected {docs_files} documentation-oriented files.", evidence=[f"docs_ratio={docs_ratio:.2f}"])]
         findings["documentation"] = Dimension(score=round(docs_score, 1), findings=docs_findings)
-
         config_score = min(100.0, 50 + config_ratio * 150)
         findings["configuration"] = Dimension(score=round(config_score, 1), findings=[Finding(severity="info", title="Configuration inventory", detail=f"Detected {config_files} configuration/data definition files.")])
-
         size_score = 100.0 if total_lines == 0 else max(35.0, 100 - max(0, total_lines - 10_000) / 500)
         maintainability_findings = [Finding(severity="info", title="Repository size", detail=f"Analyzed approximately {total_lines:,} lines across {file_count} files.")]
+        if empty_source_files:
+            maintainability_findings.append(Finding(severity="low", title="Empty source files detected", detail=f"Detected {len(empty_source_files)} source files containing no code.", evidence=empty_source_files[:8]))
+            size_score = max(0.0, size_score - min(10.0, len(empty_source_files)))
         if truncated:
             maintainability_findings.append(Finding(severity="info", title="Analysis scan truncated", detail=f"The file scan stopped after the configured max_files limit of {max_files} valid files.", evidence=[f"max_files={max_files}"]))
             size_score = max(0.0, size_score - 10.0)
         findings["maintainability"] = Dimension(score=round(size_score, 1), findings=maintainability_findings)
         overall = round(sum(d.score for d in findings.values()) / len(findings), 1)
-
     return Analysis(repository=str(root), files=file_count, languages=dict(languages), dependencies=[name for name, _ in dependencies.most_common(30)], dimensions=findings, overall_score=overall, generated_at=datetime.now(timezone.utc).isoformat())
