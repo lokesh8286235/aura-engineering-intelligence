@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import Analysis, AnalyzeRequest, AskRequest, Dimension, Finding
+from app.models import Analysis, AnalyzeRequest, AskRequest, AskResponse, Dimension, Finding
 
 
 def test_finding_evidence_lists_are_not_shared():
@@ -119,6 +119,29 @@ def test_ask_request_enforces_question_length():
         AskRequest(question="x")
 
 
+def test_ask_response_normalizes_text_and_evidence():
+    response = AskResponse(
+        answer="  Architecture is healthy.  ",
+        evidence=["  app.py:10  ", "tests/test_app.py:20"],
+        provider="  claude  ",
+    )
+
+    assert response.answer == "Architecture is healthy."
+    assert response.evidence == ["app.py:10", "tests/test_app.py:20"]
+    assert response.provider == "claude"
+
+
+def test_ask_response_rejects_blank_text_and_evidence():
+    with pytest.raises(ValidationError, match="response text fields must not be blank"):
+        AskResponse(answer="   ", evidence=[], provider="claude")
+
+    with pytest.raises(ValidationError, match="response text fields must not be blank"):
+        AskResponse(answer="Answer", evidence=[], provider="   ")
+
+    with pytest.raises(ValidationError, match="response evidence must not contain blank values"):
+        AskResponse(answer="Answer", evidence=["   "], provider="claude")
+
+
 def test_analysis_normalizes_repository_path():
     analysis = Analysis(
         repository="  /workspace/project  ",
@@ -195,7 +218,6 @@ def test_analysis_rejects_boolean_file_count():
             files=True,
             languages={},
             dimensions={},
-            dependencies=[],
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
@@ -208,7 +230,6 @@ def test_analysis_rejects_boolean_overall_score():
             files=0,
             languages={},
             dimensions={},
-            dependencies=[],
             overall_score=True,
             generated_at="2026-09-09T00:00:00Z",
         )
