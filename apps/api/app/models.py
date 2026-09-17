@@ -91,6 +91,16 @@ class Analysis(BaseModel):
             raise ValueError("overall_score must be a number, not a boolean")
         return value
 
+    @field_validator("dependencies")
+    @classmethod
+    def validate_dependencies(cls, value: list[str]) -> list[str]:
+        normalized = [dependency.strip() for dependency in value]
+        if any(not dependency for dependency in normalized):
+            raise ValueError("dependencies must not contain blank values")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("dependencies must be unique after trimming")
+        return normalized
+
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=2, max_length=4_000)
