@@ -194,8 +194,8 @@ def test_analysis_rejects_boolean_file_count():
             repository="/workspace",
             files=True,
             languages={},
-            dependencies=[],
             dimensions={},
+            dependencies=[],
             overall_score=50,
             generated_at="2026-09-09T00:00:00Z",
         )
@@ -207,8 +207,56 @@ def test_analysis_rejects_boolean_overall_score():
             repository="/workspace",
             files=0,
             languages={},
-            dependencies=[],
             dimensions={},
+            dependencies=[],
             overall_score=True,
             generated_at="2026-09-09T00:00:00Z",
         )
+
+
+def test_analysis_normalizes_language_names():
+    analysis = Analysis(
+        repository="/workspace",
+        files=1,
+        languages={"  Python  ": 10},
+        dependencies=[],
+        dimensions={},
+        overall_score=100,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    assert analysis.languages == {"Python": 10}
+
+
+def test_analysis_rejects_invalid_language_counts():
+    base = dict(
+        repository="/workspace",
+        files=1,
+        dependencies=[],
+        dimensions={},
+        overall_score=100,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    with pytest.raises(ValidationError):
+        Analysis(**base, languages={"Python": -1})
+
+    with pytest.raises(ValidationError):
+        Analysis(**base, languages={"Python": True})
+
+    with pytest.raises(ValidationError):
+        Analysis(**base, languages={"   ": 1})
+
+
+def test_analysis_rejects_duplicate_normalized_language_names():
+    base = dict(
+        repository="/workspace",
+        files=1,
+        dependencies=[],
+        dimensions={},
+        overall_score=100,
+        generated_at="2026-09-09T00:00:00Z",
+    )
+
+    with pytest.raises(ValidationError, match="language names must be unique after trimming"):
+        Analysis(**base, languages={"Python": 10, " Python ": 5})
