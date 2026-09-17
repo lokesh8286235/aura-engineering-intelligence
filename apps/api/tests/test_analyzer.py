@@ -18,6 +18,16 @@ def test_analyze_repository(tmp_path: Path) -> None:
     assert result.overall_score > 0
 
 
+def test_frontend_markup_and_styles_are_counted(tmp_path: Path) -> None:
+    (tmp_path / "index.html").write_text("<main>Hello</main>\n", encoding="utf-8")
+    (tmp_path / "app.css").write_text("main { display: grid; }\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 2
+    assert result.languages == {"HTML": 1, "CSS": 1}
+
+
 def test_generated_at_is_utc_iso8601(tmp_path: Path) -> None:
     result = analyze_repository(str(tmp_path))
 
