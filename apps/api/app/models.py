@@ -126,6 +126,22 @@ class AskRequest(BaseModel):
 
 
 class AskResponse(BaseModel):
-    answer: str
-    evidence: list[str]
-    provider: str
+    answer: str = Field(min_length=1)
+    evidence: list[str] = Field(default_factory=list)
+    provider: str = Field(min_length=1)
+
+    @field_validator("answer", "provider")
+    @classmethod
+    def validate_response_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("response text fields must not be blank")
+        return value
+
+    @field_validator("evidence")
+    @classmethod
+    def validate_response_evidence(cls, value: list[str]) -> list[str]:
+        normalized = [item.strip() for item in value]
+        if any(not item for item in normalized):
+            raise ValueError("response evidence must not contain blank values")
+        return normalized
