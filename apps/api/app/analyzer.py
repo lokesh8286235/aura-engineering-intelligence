@@ -47,7 +47,7 @@ def _is_test_file(path: Path) -> bool:
     """Identify conventional test/spec files without substring false positives."""
     parts = [part.lower() for part in path.parts]
     stem = path.stem.lower()
-    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or stem in {"test", "spec"} or stem.startswith("test_") or stem.endswith("_test") or stem.startswith("spec_") or stem.endswith("_spec") or stem.endswith(".test") or stem.endswith(".spec"))
+    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or stem in {"test", "spec"} or stem.startswith("test_") or stem.startswith("test") and stem[4:5].isalpha() and stem[4:].replace("_", "").isalnum() or stem.endswith("_test") or stem.startswith("spec_") or stem.endswith("_spec") or stem.endswith(".test") or stem.endswith(".spec"))
 
 
 def _python_imports(text: str) -> list[str]:
