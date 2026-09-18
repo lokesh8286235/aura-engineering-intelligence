@@ -261,6 +261,16 @@ def test_dependency_manifest_detection_is_case_insensitive(tmp_path: Path) -> No
     assert "@scope/library" in result.dependencies
 
 
+def test_dependency_manifest_ignores_urls(tmp_path: Path) -> None:
+    (tmp_path / "package.json").write_text('{"homepage": "https://example.com/docs", "dependencies": {"@scope/library": "^1.0.0"}}\n', encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert "@scope/library" in result.dependencies
+    assert "https://example.com/docs" not in result.dependencies
+    assert "https://example.com/docs" not in result.dependencies
+
+
 def test_sensitive_credential_manifests_are_not_analyzed(tmp_path: Path) -> None:
     (tmp_path / "credentials.json").write_text('{"token": "secret"}\n', encoding="utf-8")
     (tmp_path / "app.py").write_text("value = 1\n", encoding="utf-8")
