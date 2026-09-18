@@ -318,3 +318,13 @@ def test_scan_limit_is_reported_only_when_traversal_is_truncated(tmp_path: Path,
     monkeypatch.setattr(analyzer, "_read_text", record_read)
     analyze_repository(str(tmp_path), max_files=2)
     assert calls == [tmp_path / "a.py", tmp_path / "b.py"]
+
+
+def test_dockerfile_variants_are_case_insensitive(tmp_path: Path) -> None:
+    for name in ("Dockerfile.prod", "DOCKERFILE.dev"):
+        (tmp_path / name).write_text("FROM python:3.12-slim\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    assert result.files == 2
+    assert result.languages == {"Dockerfile": 2}
