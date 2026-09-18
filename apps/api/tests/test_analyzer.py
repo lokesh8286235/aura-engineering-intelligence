@@ -39,6 +39,16 @@ def test_empty_frontend_sources_are_reported(tmp_path: Path) -> None:
     assert finding.evidence == ["app.scss", "index.html"]
 
 
+def test_empty_dockerfiles_are_reported(tmp_path: Path) -> None:
+    (tmp_path / "Dockerfile").write_text(" \n\t\n", encoding="utf-8")
+
+    result = analyze_repository(str(tmp_path))
+
+    maintainability = result.dimensions["maintainability"]
+    finding = next(f for f in maintainability.findings if f.title == "Empty source files detected")
+    assert finding.evidence == ["Dockerfile"]
+
+
 def test_generated_at_is_utc_iso8601(tmp_path: Path) -> None:
     result = analyze_repository(str(tmp_path))
 
