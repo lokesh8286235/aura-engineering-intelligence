@@ -39,8 +39,9 @@ Evidence-backed findings
 - Dependency extraction for Python imports and package/module signals.
 - Independent engineering-health dimensions for testing, documentation, configuration, and maintainability.
 - Explainable findings with evidence instead of an opaque aggregate score.
+- Empty source-file detection includes extensionless Dockerfiles as well as conventional source extensions.
 - Bounded ingestion with configurable file-count and file-size limits.
-- Security-aware traversal that rejects symlinks and excludes common credential/configuration artifacts.
+- Security-aware traversal that rejects symlinks and excludes common credential/configuration artifacts, including `.envrc`.
 - Typed FastAPI request/response contracts.
 - Next.js + TypeScript dashboard foundation.
 - Provider abstraction for model-assisted repository questions.
@@ -71,7 +72,7 @@ Evidence-backed findings
 
 ## Security boundary
 
-The analyzer and repository-context builder filter unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
+The analyzer and repository-context builder filter unsupported, binary, oversized, sensitive, generated, dependency, and symlinked paths before they enter the analysis set. This includes common credential-bearing files such as `.envrc`, `.netrc`, package auth files, and cloud credential manifests. API limits currently allow up to **10,000 files** and **5 MB per file**, with lower defaults for normal requests.
 
 The intent is defense in depth: bounded inputs, path filtering, deterministic traversal, and provider isolation reduce the amount of untrusted repository data that can reach downstream reasoning.
 
