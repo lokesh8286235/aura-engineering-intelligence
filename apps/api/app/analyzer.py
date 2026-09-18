@@ -113,7 +113,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
             dependencies.update(_python_imports(text))
         elif path.name.lower() in {"package.json", "pyproject.toml", "go.mod"}:
             for token in text.replace('"', " ").replace("'", " ").split():
-                if "/" in token and len(token) < 120:
+                if "/" in token and len(token) < 120 and not token.startswith(("http://", "https://")):
                     dependencies[token.strip(",;:[]")]+=1
     file_count = len(paths)
     test_ratio = test_files / max(file_count, 1)
