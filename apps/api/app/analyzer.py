@@ -105,7 +105,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         if ext in {".json", ".yaml", ".yml", ".toml"}:
             config_files += 1
         total_lines += len(text.splitlines())
-        if ext in SOURCE_EXTENSIONS and not text.strip():
+        if (ext in SOURCE_EXTENSIONS or kind == "Dockerfile") and not text.strip():
             empty_source_files.append(relative)
         if ext == ".py":
             dependencies.update(_python_imports(text))
