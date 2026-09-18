@@ -49,7 +49,7 @@ def _is_test_file(path: Path) -> bool:
     stem = path.stem
     lower_stem = stem.lower()
     pascal_test = stem.startswith("Test") and len(stem) > 4 and stem[4].isupper()
-    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or lower_stem in {"test", "spec"} or lower_stem.startswith("test_") or pascal_test or lower_stem.endswith("_test") or lower_stem.startswith("spec_") or lower_stem.endswith("_spec") or lower_stem.endswith(".test") or lower_stem.endswith(".spec"))
+    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or lower_stem in {"test", "spec"} or lower_stem.startswith("test_") or pascal_test or lower_stem.endswith("_test") or lower_stem.endswith("_tests") or lower_stem.startswith("spec_") or lower_stem.endswith("_spec") or lower_stem.endswith("_specs") or lower_stem.endswith(".test") or lower_stem.endswith(".spec"))
 
 
 def _python_imports(text: str) -> list[str]:
