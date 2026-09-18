@@ -19,7 +19,7 @@ MAX_FILE_BYTES = 5_000_000
 def _is_sensitive(path: Path) -> bool:
     name = path.name.lower()
     relative_parts = tuple(part.lower() for part in path.parts)
-    return (name in SENSITIVE_FILENAMES or name.startswith(".env.") or path.suffix.lower() in SENSITIVE_SUFFIXES or any(relative_parts[-len(candidate):] == candidate for candidate in SENSITIVE_RELATIVE_PATHS))
+    return (name in SENSITIVE_FILENAMES or name.startswith(".env.") or name.startswith(".envrc.") or path.suffix.lower() in SENSITIVE_SUFFIXES or any(relative_parts[-len(candidate):] == candidate for candidate in SENSITIVE_RELATIVE_PATHS))
 
 
 def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
