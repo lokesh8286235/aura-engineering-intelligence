@@ -46,8 +46,10 @@ def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str
 def _is_test_file(path: Path) -> bool:
     """Identify conventional test/spec files without substring false positives."""
     parts = [part.lower() for part in path.parts]
-    stem = path.stem.lower()
-    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or stem in {"test", "spec"} or stem.startswith("test_") or stem.startswith("test") and stem[4:5].isalpha() and stem[4:].replace("_", "").isalnum() or stem.endswith("_test") or stem.startswith("spec_") or stem.endswith("_spec") or stem.endswith(".test") or stem.endswith(".spec"))
+    stem = path.stem
+    lower_stem = stem.lower()
+    pascal_test = stem.startswith("Test") and len(stem) > 4 and stem[4].isupper()
+    return (any(part in {"test", "tests", "spec", "specs", "__tests__"} for part in parts) or lower_stem in {"test", "spec"} or lower_stem.startswith("test_") or pascal_test or lower_stem.endswith("_test") or lower_stem.startswith("spec_") or lower_stem.endswith("_spec") or lower_stem.endswith(".test") or lower_stem.endswith(".spec"))
 
 
 def _python_imports(text: str) -> list[str]:
