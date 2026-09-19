@@ -88,8 +88,8 @@ def _requirements_dependencies(text: str) -> list[str]:
         if not line or line.startswith(("-", "git+", "http://", "https://")):
             continue
         token = line.split(";", 1)[0].strip()
-        if " @ " in token:
-            token = token.split(" @ ", 1)[0].strip()
+        if "@" in token:
+            token = token.split("@", 1)[0].strip()
         for operator in ("===", "==", ">=", "<=", ">", "<", "~=", "!="):
             token = token.split(operator, 1)[0].strip()
         if token:
