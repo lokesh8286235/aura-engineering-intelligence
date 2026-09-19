@@ -23,13 +23,15 @@ def _is_sensitive(path: Path) -> bool:
 
 
 def _files(root: Path, limit: int, max_bytes: int) -> tuple[list[tuple[Path, str]], bool]:
-    """Return bounded, validated text once and report whether traversal was truncated."""
+    """Return bounded, validated text once and report whether traversal is truncated."""
     found: list[tuple[Path, str]] = []
     for current, dirs, names in os.walk(root, topdown=True, followlinks=False):
         dirs[:] = sorted(d for d in dirs if d.lower() not in SKIP_DIRS and not (Path(current) / d).is_symlink())
         for name in sorted(names):
             path = Path(current) / name
-            if (path.suffix.lower() not in SUPPORTED and path.name.lower() != "dockerfile" and not path.name.lower().startswith("dockerfile.")) or path.is_symlink() or _is_sensitive(path):
+            lower_name = path.name.lower()
+            is_requirements_manifest = lower_name.startswith("requirements") and path.suffix.lower() == ".txt"
+            if (path.suffix.lower() not in SUPPORTED and not is_requirements_manifest and path.name.lower() != "dockerfile" and not path.name.lower().startswith("dockerfile.")) or path.is_symlink() or _is_sensitive(path):
                 continue
             try:
                 text = _read_text(path, max_bytes)
@@ -78,6 +80,21 @@ def _read_text(path: Path, max_bytes: int) -> str | None:
         return None
 
 
+def _requirements_dependencies(text: str) -> list[str]:
+    """Extract package names from requirements files without treating flags/comments as packages."""
+    dependencies: list[str] = []
+    for line in text.splitlines():
+        line = line.split("#", 1)[0].strip()
+        if not line or line.startswith(("-", "git+", "http://", "https://")):
+            continue
+        token = line.split(";", 1)[0].strip()
+        for operator in ("===", "==", ">=", "<=", ">", "<", "~=", "!="):
+            token = token.split(operator, 1)[0].strip()
+        if token:
+            dependencies.append(token)
+    return dependencies
+
+
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
     if type(max_files) is not int or not 1 <= max_files <= 10_000:
         raise ValueError("max_files must be between 1 and 10000")
@@ -96,7 +113,8 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
     empty_source_files: list[str] = []
     for path, text in paths:
         ext = path.suffix.lower()
-        kind = "Dockerfile" if path.name.lower() == "dockerfile" or path.name.lower().startswith("dockerfile.") else LANGUAGES[ext]
+        is_requirements_manifest = path.name.lower().startswith("requirements") and ext == ".txt"
+        kind = "Requirements" if is_requirements_manifest else ("Dockerfile" if path.name.lower() == "dockerfile" or path.name.lower().startswith("dockerfile.") else LANGUAGES[ext])
         languages[kind] += 1
         relative = path.relative_to(root).as_posix()
         lower = relative.lower()
@@ -104,13 +122,15 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
             test_files += 1
         if ext in {".md", ".mdx"} or path.name.lower().startswith(("readme", "contributing", "changelog")) or "/docs/" in f"/{lower}/":
             docs_files += 1
-        if ext in {".json", ".yaml", ".yml", ".toml"}:
+        if ext in {".json", ".yaml", ".yml", ".toml"} or is_requirements_manifest:
             config_files += 1
         total_lines += len(text.splitlines())
         if (ext in SOURCE_EXTENSIONS or kind == "Dockerfile") and not text.strip():
             empty_source_files.append(relative)
         if ext == ".py":
             dependencies.update(_python_imports(text))
+        elif is_requirements_manifest:
+            dependencies.update(_requirements_dependencies(text))
         elif path.name.lower() in {"package.json", "pyproject.toml", "go.mod"}:
             for token in text.replace('"', " ").replace("'", " ").split():
                 if "/" in token and len(token) < 120 and not token.startswith(("http://", "https://")):
