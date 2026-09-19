@@ -9,6 +9,7 @@ def test_requirements_manifest_contributes_python_dependencies(tmp_path: Path) -
         "pydantic>=2.0\n"
         "pytest; python_version >= '3.12'\n"
         "uvicorn[standard] @ https://example.com/packages/uvicorn.whl\n"
+        "httpx@https://example.com/packages/httpx.whl\n"
         "--index-url https://example.com/simple\n"
         "# comment\n",
         encoding="utf-8",
@@ -18,4 +19,4 @@ def test_requirements_manifest_contributes_python_dependencies(tmp_path: Path) -
 
     assert result.files == 1
     assert result.languages == {"Requirements": 1}
-    assert result.dependencies == ["fastapi", "pydantic", "pytest", "uvicorn[standard]"]
+    assert result.dependencies == ["fastapi", "pydantic", "pytest", "uvicorn[standard]", "httpx"]
