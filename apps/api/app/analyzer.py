@@ -1,14 +1,22 @@
 from __future__ import annotations
 
 import ast
-import json
 import os
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 
+from .models import Analysis, Dimension, Finding
+
 SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".html", ".htm", ".css", ".scss", ".sass", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
 SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".html", ".htm", ".css", ".scss", ".sass"}
+LANGUAGES = {
+    ".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript",
+    ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript",
+    ".java": "Java", ".go": "Go", ".graphql": "GraphQL", ".gql": "GraphQL",
+    ".html": "HTML", ".htm": "HTML", ".css": "CSS", ".scss": "CSS", ".sass": "CSS",
+    ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown",
+}
 SKIP_DIRS = {".git", ".terraform", ".turbo", ".vercel", ".cache", ".parcel-cache", "node_modules", ".venv", "venv", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".tox", ".nox", "coverage", "htmlcov", "dist", "build", "target", "__pycache__"}
 SENSITIVE_FILENAMES = {".env", ".env.local", ".env.development", ".env.production", ".env.test", ".envrc", ".netrc", ".npmrc", ".pypirc", ".git-credentials", "credentials.json", "credentials.yml", "credentials.yaml", "credentials.toml", "secrets.json", "secrets.yml", "secrets.yaml", "secrets.toml", "service-account.json", "service_account.json", "id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"}
 SENSITIVE_RELATIVE_PATHS = {(".aws", "credentials"), (".docker", "config.json"), (".config", "gcloud", "application_default_credentials.json")}
