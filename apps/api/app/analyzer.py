@@ -128,7 +128,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         languages[kind] += 1
         relative = path.relative_to(root).as_posix()
         lower = relative.lower()
-        if _is_test_file(path.relative_to(root)):
+        if ext in SOURCE_EXTENSIONS and _is_test_file(path.relative_to(root)):
             test_files += 1
         if ext in {".md", ".mdx"} or path.name.lower().startswith(("readme", "contributing", "changelog")) or "/docs/" in f"/{lower}/":
             docs_files += 1
