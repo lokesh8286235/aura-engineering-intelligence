@@ -8,12 +8,12 @@ from pathlib import Path
 
 from .models import Analysis, Dimension, Finding
 
-SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".html", ".htm", ".css", ".scss", ".sass", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
-SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".html", ".htm", ".css", ".scss", ".sass"}
+SUPPORTED = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".proto", ".html", ".htm", ".css", ".scss", ".sass", ".json", ".yaml", ".yml", ".toml", ".md", ".mdx"}
+SOURCE_EXTENSIONS = {".py", ".ts", ".tsx", ".mts", ".cts", ".js", ".jsx", ".mjs", ".cjs", ".java", ".go", ".graphql", ".gql", ".proto", ".html", ".htm", ".css", ".scss", ".sass"}
 LANGUAGES = {
     ".py": "Python", ".ts": "TypeScript", ".tsx": "TypeScript", ".mts": "TypeScript", ".cts": "TypeScript",
     ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript",
-    ".java": "Java", ".go": "Go", ".graphql": "GraphQL", ".gql": "GraphQL",
+    ".java": "Java", ".go": "Go", ".graphql": "GraphQL", ".gql": "GraphQL", ".proto": "Protocol Buffers",
     ".html": "HTML", ".htm": "HTML", ".css": "CSS", ".scss": "CSS", ".sass": "CSS",
     ".json": "JSON", ".yaml": "YAML", ".yml": "YAML", ".toml": "TOML", ".md": "Markdown", ".mdx": "Markdown",
 }
