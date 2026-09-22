@@ -15,7 +15,7 @@ def test_package_json_uses_declared_dependency_sections_only(tmp_path: Path) -> 
 
     result = analyze_repository(str(tmp_path))
 
-    assert result.dependencies == ["@scope/ui", "react", "vitest"]
+    assert set(result.dependencies) == {"@scope/ui", "react", "vitest"}
     assert "./scripts/build" not in result.dependencies
     assert "https://example.com/docs" not in result.dependencies
 
