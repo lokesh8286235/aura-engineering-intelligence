@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import ast
+import json
 import os
+import re
+import tomllib
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -105,6 +108,67 @@ def _requirements_dependencies(text: str) -> list[str]:
     return dependencies
 
 
+def _manifest_dependencies(name: str, text: str) -> list[str]:
+    """Extract declared dependencies from structured package manifests only."""
+    lower_name = name.lower()
+    if lower_name == "package.json":
+        try:
+            data = json.loads(text)
+        except json.JSONDecodeError:
+            return []
+        dependencies: list[str] = []
+        for section in ("dependencies", "devDependencies", "peerDependencies", "optionalDependencies"):
+            values = data.get(section, {})
+            if isinstance(values, dict):
+                dependencies.extend(str(key) for key in values)
+        return dependencies
+
+    if lower_name == "pyproject.toml":
+        try:
+            data = tomllib.loads(text)
+        except tomllib.TOMLDecodeError:
+            return []
+        dependencies = []
+        project = data.get("project", {})
+        if isinstance(project, dict):
+            raw = project.get("dependencies", [])
+            if isinstance(raw, list):
+                dependencies.extend(re.split(r"[<>=!~;\[]", str(item), maxsplit=1)[0].strip() for item in raw)
+            optional = project.get("optional-dependencies", {})
+            if isinstance(optional, dict):
+                for values in optional.values():
+                    if isinstance(values, list):
+                        dependencies.extend(re.split(r"[<>=!~;\[]", str(item), maxsplit=1)[0].strip() for item in values)
+        poetry = data.get("tool", {}).get("poetry", {})
+        if isinstance(poetry, dict):
+            values = poetry.get("dependencies", {})
+            if isinstance(values, dict):
+                dependencies.extend(str(key) for key in values if key.lower() != "python")
+        return [name for name in dependencies if name]
+
+    if lower_name == "go.mod":
+        dependencies = []
+        in_require_block = False
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("require ("):
+                in_require_block = True
+                continue
+            if in_require_block and stripped == ")":
+                in_require_block = False
+                continue
+            if stripped.startswith("require "):
+                stripped = stripped[len("require "):].strip()
+                in_require_block = False
+            if in_require_block or (stripped and not stripped.startswith(("module ", "go ", "toolchain ", "replace ", "exclude ", "retract ", "//"))):
+                match = re.match(r"([A-Za-z0-9_.~/-]+)\s+v", stripped)
+                if match:
+                    dependencies.append(match.group(1))
+        return dependencies
+
+    return []
+
+
 def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: int = 512_000) -> Analysis:
     if type(max_files) is not int or not 1 <= max_files <= 10_000:
         raise ValueError("max_files must be between 1 and 10000")
@@ -142,9 +206,7 @@ def analyze_repository(repository: str, max_files: int = 500, max_file_bytes: in
         elif is_requirements_manifest:
             dependencies.update(_requirements_dependencies(text))
         elif path.name.lower() in {"package.json", "pyproject.toml", "go.mod"}:
-            for token in text.replace('"', " ").replace("'", " ").split():
-                if "/" in token and len(token) < 120 and not token.startswith(("http://", "https://")):
-                    dependencies[token.strip(",;:[]")]+=1
+            dependencies.update(_manifest_dependencies(path.name, text))
     file_count = len(paths)
     test_ratio = test_files / max(file_count, 1)
     docs_ratio = docs_files / max(file_count, 1)
